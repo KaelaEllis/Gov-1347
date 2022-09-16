@@ -22,45 +22,21 @@ To investigate gerrymandering in the 2020 house election I compare the actual vo
 
 
 ```{r}
-## make map of GOP vote share by state (national) - 2014
-# use h dataset from earlier
-# house_party_vote_share_by_district_1948_2020 <-
-# read_csv("house party vote share by district 1948-2020.csv")
-# h <- house_party_vote_share_by_district_1948_2020
-# filter for relevant variables
+
 
 ```
 
-```{r}
-#R_2020v <- read_csv("House_General_Elections_all_states_2020 - Sheet1 (1).csv") %>%
-#filter(raceYear == 2020) %>%
-#select(raceYear, State, RepVotes, DemVotes) %>%
-#group_by(State) %>%
-#mutate(vR = 100 * sum((sum(RepVotes))/ ((sum(RepVotes)) +(sum(DemVotes)))), 
-       #vD = 100 * sum((sum(DemVotes))/ ((sum(RepVotes)) +(sum(DemVotes)))))  %>%
-  
- # mutate(votemargin = vR-vD)  %>%
-  #mutate(R_votemargin_st = (sum(RepVotes))/
-#sum(RepVotes + DemVotes),
-#D_votemargin_st = (sum(DemVotes))/
-  #sum(RepVotes + DemVotes),  
-        #votemargin_st = R_votemargin_st - D_votemargin_st) %>%
+```{r, echo=FALSE}
 
-#rename(state = State)
-# load usmap
 library(tidyverse)
 library(usmap)
 states_map <- usmap::us_map()
-unique(states_map$abbr)
 
-# plot
-#plot_usmap(data = R_2020v, regions = "states", values = "votemargin") +
-#scale_fill_gradient2(high = "red", mid = "white", low = "blue", name = "Two-party voteshare margin") +
-#theme_void() + labs(title = "2020 National Vote Share by Party")
+
 
 ```
 ##2020 National Vote Share by Party
-```{r}
+```{r, echo=FALSE}
 data2 <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 1/House_General_Elections_all_states_2020 - Sheet1 (1) copy.csv")
 data2$Rpercent.vote <- ((data2$RepVotes/ (data2$DemVotes + data2$RepVotes)) *100)
 
@@ -78,7 +54,7 @@ A plot of the actual house seats allocated should look similar to this plot, sin
 
 ##2020 National Seat Share by Party
 
-```{r}
+```{r,echo=FALSE}
 data2 <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 1/House_General_Elections_all_states_2020 - Sheet1 (1) copy.csv")
 data2$Rpercent.seats <- ((data2$RepWon/ (data2$DemWon + data2$RepWon)) *100)
 
@@ -93,33 +69,12 @@ The above plot shows the actual house seats allocated after the 2020 election. T
 
 ##2020 National Vote Share vs House Seats
 
-```{r}
-#R_2020 <- read_csv("House_General_Elections_all_states_2020 - Sheet1 (1).csv") %>%
-#filter(raceYear == 2020) %>%
-#select(raceYear, State, RepWon, DemWon) %>%
-#group_by(State) %>%
-#mutate(R_votemargin_st = (sum(RepWon))/
-#sum(RepWon + DemWon),
-#D_votemargin_st = (sum(DemWon))/
-  
-#sum(RepWon + DemWon), 
- #votemargin_st = R_votemargin_st - D_votemargin_st)%>%
+```{r,echo=FALSE}
 
-#rename(state = State)
-# load usmap
-# install.packages('plot_usmap')
-#library(usmap)
-#states_map <- usmap::us_map()
-#unique(states_map$abbr)
-
-# plot
-#plot_usmap(data = R_2020, regions = "states", values = "R_votemargin_st") +
-#scale_fill_gradient2(high = "red", mid = "white", low = "blue", name = "Two-party seats won margin") +
-#theme_void() + labs(title = "2020 National Seat Share by Party")
 
 ```
 
-```{r}
+```{r,echo=FALSE}
 #Make graph to highlight the states that have the most difference  
 data<- read_csv("~/Desktop/Gov1347/Gov-1347/Week 1/House_General_Elections_all_states_2020 - Sheet1 (1) copy.csv")
 data$Rpercent.vote <- ((data$RepVotes/ (data$DemVotes + data$RepVotes)) *100)
@@ -130,29 +85,12 @@ data
 
 data1 <- data %>% rename(state = State)
 
-#R <- data %>%
-#filter(raceYear == 2020) %>%
-#select(raceYear, State, Rpercent.vote, Rpercent.seats) %>%
-#group_by(State) %>%
-#mutate(R_votemargin_st = (sum(Rpercent.vote))/
-#sum(Rpercent.vote + Rpercent.seats),
-#D_votemargin_st = (sum(Rpercent.seats))/
-  
-#sum(Rpercent.vote + Rpercent.seats), 
-# votemargin_st = R_votemargin_st - D_votemargin_st)%>%
 
-#rename(state = State)
-# load usmap
-# install.packages('plot_usmap')
 library(usmap)
 states_map <- usmap::us_map()
 unique(states_map$abbr)
 
 
-# plot
-#plot_usmap(data = R, regions = "states", values = "R_votemargin_st") +
-#scale_fill_gradient2(high = "darkgreen", mid = "white", low = "blue", name = "Difference between voteshare and house seats") +
-#theme_void() + labs(title = "2020 National Voteshare vs House Seats")
 
 plot_usmap(data = data1, regions = "states", values = "difference") +
 scale_fill_gradient2(high = "darkgreen", mid = "white", low = "blue", name = "voteshare % vs house seats %") +
