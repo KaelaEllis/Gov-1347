@@ -10,28 +10,162 @@ tags: ["R Markdown", "plot", "regression"]
 knitr::opts_chunk$set(collapse = TRUE)
 ```
 
-# R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-You can embed an R code chunk like this:
+Welcome to my 2022 Midterm blog series. I’m Kaela Ellis, a junior at Harvard College studying Government. This semester I am taking Gov 1347: Election Analytics taught by Professor Ryan Enos, which has led to the creation of this blog. I will use this blog series to predict the 2022 Midterm election. The series will be updated weekly with new predictive measures and analyses of past elections.
 
-```{r cars}
-summary(cars)
-fit <- lm(dist ~ speed, data = cars)
-fit
+##Introduction
+
+This first blog post examines the question of gerrymandering in the 2020 House election. Gerrymandering is a practice in which political boundaries are drawn for voting advantage. In gerrymandered regions the party that has majority vote share may not have the most house seats allocated. 
+
+To investigate gerrymandering in the 2020 house election I compare the actual vote share to the number of house seats allocated in each state. This will highlight states where the actual vote share does not reasonably correlate with the number of house seats allocated. I predict that a handful of states will have extreme discrepancies in vote share compared to the house seats allocated, but these will be states that have a low number of house seats. In this, low seat count states like Delaware will have larger discrepancies than high seat count states like California. 
+
+
+
+
+```{r}
+## make map of GOP vote share by state (national) - 2014
+# use h dataset from earlier
+# house_party_vote_share_by_district_1948_2020 <-
+# read_csv("house party vote share by district 1948-2020.csv")
+# h <- house_party_vote_share_by_district_1948_2020
+# filter for relevant variables
+
 ```
 
-# Including Plots
+```{r}
+#R_2020v <- read_csv("House_General_Elections_all_states_2020 - Sheet1 (1).csv") %>%
+#filter(raceYear == 2020) %>%
+#select(raceYear, State, RepVotes, DemVotes) %>%
+#group_by(State) %>%
+#mutate(vR = 100 * sum((sum(RepVotes))/ ((sum(RepVotes)) +(sum(DemVotes)))), 
+       #vD = 100 * sum((sum(DemVotes))/ ((sum(RepVotes)) +(sum(DemVotes)))))  %>%
+  
+ # mutate(votemargin = vR-vD)  %>%
+  #mutate(R_votemargin_st = (sum(RepVotes))/
+#sum(RepVotes + DemVotes),
+#D_votemargin_st = (sum(DemVotes))/
+  #sum(RepVotes + DemVotes),  
+        #votemargin_st = R_votemargin_st - D_votemargin_st) %>%
 
-You can also embed plots. See Figure \@ref(fig:pie) for example:
+#rename(state = State)
+# load usmap
+ install.packages('plot_usmap')
+library(usmap)
+states_map <- usmap::us_map()
+unique(states_map$abbr)
 
-```{r pie, fig.cap='A fancy pie chart.', tidy=FALSE}
-par(mar = c(0, 1, 0, 1))
-pie(
-  c(280, 60, 20),
-  c('Sky', 'Sunny side of pyramid', 'Shady side of pyramid'),
-  col = c('#0292D8', '#F7EA39', '#C4B632'),
-  init.angle = -50, border = NA
-)
+# plot
+#plot_usmap(data = R_2020v, regions = "states", values = "votemargin") +
+#scale_fill_gradient2(high = "red", mid = "white", low = "blue", name = "Two-party voteshare margin") +
+#theme_void() + labs(title = "2020 National Vote Share by Party")
+
 ```
+##2020 National Vote Share by Party
+```{r}
+data2 <- read_csv("House_General_Elections_all_states_2020 - Sheet1 (1) copy.csv")
+data2$Rpercent.vote <- ((data2$RepVotes/ (data2$DemVotes + data2$RepVotes)) *100)
+
+data2 <- data2 %>% rename(state = State)
+
+plot_usmap(data = data2, regions = "states", values = "Rpercent.vote") +
+scale_fill_gradient2(high = "red", mid = "white", low = "blue",  midpoint = 50, name = "Two-party voteshare margin") +
+theme_void() + labs(title = "2020 National Vote Share by Party")
+```
+
+
+Using the House General Elections, All States, 2020 Summary dataset from the library Congress, I plotted the vote share by party. Looking at the scale, states that are red (with a vote share margin of >50%) have a Republican majority. Meanwhile, states that are blue (with a vote share margin of <50%) have a Democratic majority. The more vibrant the color (the further from 50%) indicates a higher majority of the given party. So, a state like South Dakota has a high Republican vote share, while Massachusetts has a high Democratic vote share, and a state like Pennsylvania has a near equal vote share between the two parties. 
+
+A plot of the actual house seats allocated should look similar to this plot, since the actual seats allocated should be reflective of the vote share. If a plot of the actual seats allocated is not similar to this plot, it may be indicative of gerrymandering.
+
+##2020 National Seat Share by Party
+
+```{r}
+data2 <- read_csv("House_General_Elections_all_states_2020 - Sheet1 (1) copy.csv")
+data2$Rpercent.seats <- ((data2$RepWon/ (data2$DemWon + data2$RepWon)) *100)
+
+data2 <- data2 %>% rename(state = State)
+
+plot_usmap(data = data2, regions = "states", values = "Rpercent.seats") +
+scale_fill_gradient2(high = "red", mid = "white", low = "blue",  midpoint = 50, name = "Two-party seats won margin") +
+theme_void() + labs(title = "2020 National Seat Share by Party")
+```
+
+The above plot shows the actual house seats allocated after the 2020 election. This map is not similar to the vote share map. There are more states with extreme blue or red toned colors, meaning that these states have more seats of one party than its vote share would indicate. The house allocation plot makes the U.S look more polarized than it is in reality. There are no states that flipped, meaning that a state that had a majority Democratic vote share flipped to a Republican house seat majority or vice versa. However, many states appear to be gaining more seats in their majority vote share party than they should be. 
+
+##2020 National Vote Share vs House Seats
+
+```{r}
+#R_2020 <- read_csv("House_General_Elections_all_states_2020 - Sheet1 (1).csv") %>%
+#filter(raceYear == 2020) %>%
+#select(raceYear, State, RepWon, DemWon) %>%
+#group_by(State) %>%
+#mutate(R_votemargin_st = (sum(RepWon))/
+#sum(RepWon + DemWon),
+#D_votemargin_st = (sum(DemWon))/
+  
+#sum(RepWon + DemWon), 
+ #votemargin_st = R_votemargin_st - D_votemargin_st)%>%
+
+#rename(state = State)
+# load usmap
+# install.packages('plot_usmap')
+#library(usmap)
+#states_map <- usmap::us_map()
+#unique(states_map$abbr)
+
+# plot
+#plot_usmap(data = R_2020, regions = "states", values = "R_votemargin_st") +
+#scale_fill_gradient2(high = "red", mid = "white", low = "blue", name = "Two-party seats won margin") +
+#theme_void() + labs(title = "2020 National Seat Share by Party")
+
+```
+
+```{r}
+#Make graph to highlight the states that have the most difference  
+data<- read_csv("House_General_Elections_all_states_2020 - Sheet1 (1) copy.csv")
+data$Rpercent.vote <- ((data$RepVotes/ (data$DemVotes + data$RepVotes)) *100)
+data$Rpercent.seats <- ((data$RepWon/ (data$DemWon + data$RepWon)) *100)
+data$difference <- abs(data$Rpercent.vote - data$Rpercent.seats)
+
+data 
+
+data1 <- data %>% rename(state = State)
+
+#R <- data %>%
+#filter(raceYear == 2020) %>%
+#select(raceYear, State, Rpercent.vote, Rpercent.seats) %>%
+#group_by(State) %>%
+#mutate(R_votemargin_st = (sum(Rpercent.vote))/
+#sum(Rpercent.vote + Rpercent.seats),
+#D_votemargin_st = (sum(Rpercent.seats))/
+  
+#sum(Rpercent.vote + Rpercent.seats), 
+# votemargin_st = R_votemargin_st - D_votemargin_st)%>%
+
+#rename(state = State)
+# load usmap
+# install.packages('plot_usmap')
+library(usmap)
+states_map <- usmap::us_map()
+unique(states_map$abbr)
+
+
+# plot
+#plot_usmap(data = R, regions = "states", values = "R_votemargin_st") +
+#scale_fill_gradient2(high = "darkgreen", mid = "white", low = "blue", name = "Difference between voteshare and house seats") +
+#theme_void() + labs(title = "2020 National Voteshare vs House Seats")
+
+plot_usmap(data = data1, regions = "states", values = "difference") +
+scale_fill_gradient2(high = "darkgreen", mid = "white", low = "blue", name = "voteshare % vs house seats %") +
+theme_void() + labs(title = "2020 National Vote Share vs House Seats")
+```
+This plot highlights the states with the largest discrepancies between their national vote share and their house seats allocated. The states in the darkest green have the largest discrepancies, as in some states the vote share differed from the actual house seats allocated by as much as 46%. 
+
+The states with the highest discrepancies are Alaska, Delaware, Maine, and New Hampshire. However, as I predicted, the states with the largest discrepancies are the states with the lowest number of house seats; they all have 2 house seats or less. It makes sense that large discrepancies occur when a state only has one seat to allocate, but has a 50/50 vote share. For example, taking a look at Delaware, the Republican party won 41% of the vote, but it only had one seat to allocate. They gave this seat to the majority, Democratic candidate, creating a 41% point discrepancy. This does not indicate gerrymandering. 
+
+However, states like Maine and New Hampshire are gerrymandering suspects. In Maine, the Republican party won 42% of the vote, but both seats were given to the Democratic candidates. Similarly, in New Hampshire, the Republican party won 46% of the vote, but both seats were given to the Democratic candidates. 
+
+Other states that are also gerrymandering suspects based on this framework are Connecticut, Iowa, Maryland, Nebraska, Nevada, New Jersey, Oregon, South Carolina. To determine if these states are actual gerrymandering suspects more research needs to be done. However, these plots have allowed me to identify suspects. In making my predictions for the 2022 midterm, I will keep these in mind. 
+
+
