@@ -1,17 +1,15 @@
-n---
-title: "Hello R Markdown"
-author: "Kaela Ellis"
-date: 2020-12-01T21:13:14-05:00
-categories: ["R"]
-tags: ["R Markdown", "plot", "regression"]
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(collapse = TRUE)
-```
-
-
-
+title: "Blog Post 1"
+author: "R package build"
+date: '2022-09-16'
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+categories: []
+tags: []
+slug: []
+---
 Welcome to my 2022 Midterm blog series. I’m Kaela Ellis, a junior at Harvard College studying Government. This semester I am taking Gov 1347: Election Analytics taught by Professor Ryan Enos, which has led to the creation of this blog. I will use this blog series to predict the 2022 Midterm election. The series will be updated weekly with new predictive measures and analyses of past elections.
 
 ##Introduction
@@ -50,7 +48,7 @@ To investigate gerrymandering in the 2020 house election I compare the actual vo
 
 #rename(state = State)
 # load usmap
- install.packages('plot_usmap')
+library(tidyverse)
 library(usmap)
 states_map <- usmap::us_map()
 unique(states_map$abbr)
@@ -63,7 +61,7 @@ unique(states_map$abbr)
 ```
 ##2020 National Vote Share by Party
 ```{r}
-data2 <- read_csv("House_General_Elections_all_states_2020 - Sheet1 (1) copy.csv")
+data2 <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 1/House_General_Elections_all_states_2020 - Sheet1 (1) copy.csv")
 data2$Rpercent.vote <- ((data2$RepVotes/ (data2$DemVotes + data2$RepVotes)) *100)
 
 data2 <- data2 %>% rename(state = State)
@@ -81,7 +79,7 @@ A plot of the actual house seats allocated should look similar to this plot, sin
 ##2020 National Seat Share by Party
 
 ```{r}
-data2 <- read_csv("House_General_Elections_all_states_2020 - Sheet1 (1) copy.csv")
+data2 <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 1/House_General_Elections_all_states_2020 - Sheet1 (1) copy.csv")
 data2$Rpercent.seats <- ((data2$RepWon/ (data2$DemWon + data2$RepWon)) *100)
 
 data2 <- data2 %>% rename(state = State)
@@ -123,7 +121,7 @@ The above plot shows the actual house seats allocated after the 2020 election. T
 
 ```{r}
 #Make graph to highlight the states that have the most difference  
-data<- read_csv("House_General_Elections_all_states_2020 - Sheet1 (1) copy.csv")
+data<- read_csv("~/Desktop/Gov1347/Gov-1347/Week 1/House_General_Elections_all_states_2020 - Sheet1 (1) copy.csv")
 data$Rpercent.vote <- ((data$RepVotes/ (data$DemVotes + data$RepVotes)) *100)
 data$Rpercent.seats <- ((data$RepWon/ (data$DemWon + data$RepWon)) *100)
 data$difference <- abs(data$Rpercent.vote - data$Rpercent.seats)
@@ -166,6 +164,6 @@ The states with the highest discrepancies are Alaska, Delaware, Maine, and New H
 
 However, states like Maine and New Hampshire are gerrymandering suspects. In Maine, the Republican party won 42% of the vote, but both seats were given to the Democratic candidates. Similarly, in New Hampshire, the Republican party won 46% of the vote, but both seats were given to the Democratic candidates. 
 
-Other states that are also gerrymandering suspects based on this framework are Connecticut, Iowa, Maryland, Nebraska, Nevada, New Jersey, Oregon, South Carolina. To determine if these states are actual gerrymandering suspects more research needs to be done. However, these plots have allowed me to identify suspects. In making my predictions for the 2022 midterm, I will keep these in mind. 
+Other states that are also gerrymandering suspects based on this framework are Connecticut, Iowa, Maryland, Nebraska, Nevada, New Jersey, Oregon, South Carolina. To determine if these states are actual gerrymandering suspects more research needs to be done. However, these plots have allowed me to identify suspects. In making my predictions for the 2022 midterm, I will keep these in mind.  
 
 
