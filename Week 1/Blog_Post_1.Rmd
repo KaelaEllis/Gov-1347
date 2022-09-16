@@ -158,5 +158,12 @@ plot_usmap(data = data1, regions = "states", values = "difference") +
 scale_fill_gradient2(high = "darkgreen", mid = "white", low = "blue", name = "voteshare % vs house seats %") +
 theme_void() + labs(title = "2020 National Vote Share vs House Seats")
 ```
+This plot highlights the states with the largest discrepancies between their national vote share and their house seats allocated. The states in the darkest green have the largest discrepancies, as in some states the vote share differed from the actual house seats allocated by as much as 46%. 
+
+The states with the highest discrepancies are Alaska, Delaware, Maine, and New Hampshire. However, as I predicted, the states with the largest discrepancies are the states with the lowest number of house seats; they all have 2 house seats or less. It makes sense that large discrepancies occur when a state only has one seat to allocate, but has a 50/50 vote share. For example, taking a look at Delaware, the Republican party won 41% of the vote, but it only had one seat to allocate. They gave this seat to the majority, Democratic candidate, creating a 41% point discrepancy. This does not indicate gerrymandering. 
+
+However, states like Maine and New Hampshire are gerrymandering suspects. In Maine, the Republican party won 42% of the vote, but both seats were given to the Democratic candidates. Similarly, in New Hampshire, the Republican party won 46% of the vote, but both seats were given to the Democratic candidates. 
+
+Other states that are also gerrymandering suspects based on this framework are Connecticut, Iowa, Maryland, Nebraska, Nevada, New Jersey, Oregon, South Carolina. To determine if these states are actual gerrymandering suspects more research needs to be done. However, these plots have allowed me to identify suspects. In making my predictions for the 2022 midterm, I will keep these in mind. 
 
 
