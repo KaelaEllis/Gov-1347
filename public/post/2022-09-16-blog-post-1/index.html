@@ -68,46 +68,14 @@
 <p>##Introduction</p>
 <p>This first blog post examines the question of gerrymandering in the 2020 House election. Gerrymandering is a practice in which political boundaries are drawn for voting advantage. In gerrymandered regions the party that has majority vote share may not have the most house seats allocated.</p>
 <p>To investigate gerrymandering in the 2020 house election I compare the actual vote share to the number of house seats allocated in each state. This will highlight states where the actual vote share does not reasonably correlate with the number of house seats allocated. I predict that a handful of states will have extreme discrepancies in vote share compared to the house seats allocated, but these will be states that have a low number of house seats. In this, low seat count states like Delaware will have larger discrepancies than high seat count states like California.</p>
-<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
-## ✔ ggplot2 3.3.6      ✔ purrr   0.3.4 
-## ✔ tibble  3.1.6      ✔ dplyr   1.0.10
-## ✔ tidyr   1.2.1      ✔ stringr 1.4.0 
-## ✔ readr   2.1.2      ✔ forcats 0.5.2 
-## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()</code></pre>
-<p>##2020 National Vote Share by Party</p>
-<pre><code>## Rows: 49 Columns: 6
-## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (1): State
-## dbl (3): raceYear, RepWon, DemWon
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<p><img src="http://example.org/post/2022-09-16-blog-post-1/index_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>##2020 National Vote Share by Party
+<img src="http://example.org/post/2022-09-16-blog-post-1/index_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
 <p>Using the House General Elections, All States, 2020 Summary dataset from the library Congress, I plotted the vote share by party. Looking at the scale, states that are red (with a vote share margin of &gt;50%) have a Republican majority. Meanwhile, states that are blue (with a vote share margin of &lt;50%) have a Democratic majority. The more vibrant the color (the further from 50%) indicates a higher majority of the given party. So, a state like South Dakota has a high Republican vote share, while Massachusetts has a high Democratic vote share, and a state like Pennsylvania has a near equal vote share between the two parties.</p>
 <p>A plot of the actual house seats allocated should look similar to this plot, since the actual seats allocated should be reflective of the vote share. If a plot of the actual seats allocated is not similar to this plot, it may be indicative of gerrymandering.</p>
 <p>##2020 National Seat Share by Party</p>
-<pre><code>## Rows: 49 Columns: 6
-## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (1): State
-## dbl (3): raceYear, RepWon, DemWon
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 <p><img src="http://example.org/post/2022-09-16-blog-post-1/index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
 <p>The above plot shows the actual house seats allocated after the 2020 election. This map is not similar to the vote share map. There are more states with extreme blue or red toned colors, meaning that these states have more seats of one party than its vote share would indicate. The house allocation plot makes the U.S look more polarized than it is in reality. There are no states that flipped, meaning that a state that had a majority Democratic vote share flipped to a Republican house seat majority or vice versa. However, many states appear to be gaining more seats in their majority vote share party than they should be.</p>
 <p>##2020 National Vote Share vs House Seats</p>
-<pre><code>## Rows: 49 Columns: 6
-## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (1): State
-## dbl (3): raceYear, RepWon, DemWon
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 <pre><code>## # A tibble: 49 × 9
 ##    raceYear State   RepVotes DemVotes RepWon DemWon Rpercent.vote Rpercent.seats
 ##       &lt;dbl&gt; &lt;chr&gt;      &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;         &lt;dbl&gt;          &lt;dbl&gt;
@@ -126,7 +94,7 @@
 ## [16] &quot;IA&quot; &quot;KS&quot; &quot;KY&quot; &quot;LA&quot; &quot;ME&quot; &quot;MD&quot; &quot;MA&quot; &quot;MI&quot; &quot;MN&quot; &quot;MS&quot; &quot;MO&quot; &quot;MT&quot; &quot;NE&quot; &quot;NV&quot; &quot;NH&quot;
 ## [31] &quot;NJ&quot; &quot;NM&quot; &quot;NY&quot; &quot;NC&quot; &quot;ND&quot; &quot;OH&quot; &quot;OK&quot; &quot;OR&quot; &quot;PA&quot; &quot;RI&quot; &quot;SC&quot; &quot;SD&quot; &quot;TN&quot; &quot;TX&quot; &quot;UT&quot;
 ## [46] &quot;VT&quot; &quot;VA&quot; &quot;WA&quot; &quot;WV&quot; &quot;WI&quot; &quot;WY&quot;</code></pre>
-<p><img src="http://example.org/post/2022-09-16-blog-post-1/index_files/figure-html/unnamed-chunk-6-1.png" width="672" />
+<p><img src="http://example.org/post/2022-09-16-blog-post-1/index_files/figure-html/unnamed-chunk-5-1.png" width="672" />
 This plot highlights the states with the largest discrepancies between their national vote share and their house seats allocated. The states in the darkest green have the largest discrepancies, as in some states the vote share differed from the actual house seats allocated by as much as 46%.</p>
 <p>The states with the highest discrepancies are Alaska, Delaware, Maine, and New Hampshire. However, as I predicted, the states with the largest discrepancies are the states with the lowest number of house seats; they all have 2 house seats or less. It makes sense that large discrepancies occur when a state only has one seat to allocate, but has a 50/50 vote share. For example, taking a look at Delaware, the Republican party won 41% of the vote, but it only had one seat to allocate. They gave this seat to the majority, Democratic candidate, creating a 41% point discrepancy. This does not indicate gerrymandering.</p>
 <p>However, states like Maine and New Hampshire are gerrymandering suspects. In Maine, the Republican party won 42% of the vote, but both seats were given to the Democratic candidates. Similarly, in New Hampshire, the Republican party won 46% of the vote, but both seats were given to the Democratic candidates.</p>
@@ -146,7 +114,7 @@ This plot highlights the states with the largest discrepancies between their nat
         		<footer>
 			
 			<span>
-			&copy; <time datetime="2022-09-16 15:39:18.98133 -0400 EDT m=&#43;0.089302334">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
+			&copy; <time datetime="2022-09-16 15:43:24.498802 -0400 EDT m=&#43;0.094626334">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
 			</span>
 		</footer>
 

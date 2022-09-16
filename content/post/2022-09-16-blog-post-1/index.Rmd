@@ -26,7 +26,7 @@ To investigate gerrymandering in the 2020 house election I compare the actual vo
 
 ```
 
-```{r, echo=FALSE}
+```{r,  message = FALSE, echo=FALSE}
 
 library(tidyverse)
 library(usmap)
@@ -36,7 +36,7 @@ states_map <- usmap::us_map()
 
 ```
 ##2020 National Vote Share by Party
-```{r, echo=FALSE}
+```{r, message = FALSE, echo=FALSE}
 data2 <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 1/House_General_Elections_all_states_2020 - Sheet1 (1) copy.csv")
 data2$Rpercent.vote <- ((data2$RepVotes/ (data2$DemVotes + data2$RepVotes)) *100)
 
@@ -54,7 +54,7 @@ A plot of the actual house seats allocated should look similar to this plot, sin
 
 ##2020 National Seat Share by Party
 
-```{r,echo=FALSE}
+```{r, message = FALSE, echo=FALSE}
 data2 <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 1/House_General_Elections_all_states_2020 - Sheet1 (1) copy.csv")
 data2$Rpercent.seats <- ((data2$RepWon/ (data2$DemWon + data2$RepWon)) *100)
 
@@ -69,12 +69,8 @@ The above plot shows the actual house seats allocated after the 2020 election. T
 
 ##2020 National Vote Share vs House Seats
 
-```{r,echo=FALSE}
 
-
-```
-
-```{r,echo=FALSE}
+```{r, message = FALSE, echo=FALSE}
 #Make graph to highlight the states that have the most difference  
 data<- read_csv("~/Desktop/Gov1347/Gov-1347/Week 1/House_General_Elections_all_states_2020 - Sheet1 (1) copy.csv")
 data$Rpercent.vote <- ((data$RepVotes/ (data$DemVotes + data$RepVotes)) *100)
