@@ -80,9 +80,6 @@ data$difference <- abs(data$Rpercent.vote - data$Rpercent.seats)
 data1 <- data %>% rename(state = State)
 
 
-library(usmap)
-states_map <- usmap::us_map()
-unique(states_map$abbr)
 
 
 
