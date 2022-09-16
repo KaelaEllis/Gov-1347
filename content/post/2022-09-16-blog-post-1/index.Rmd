@@ -77,8 +77,6 @@ data$Rpercent.vote <- ((data$RepVotes/ (data$DemVotes + data$RepVotes)) *100)
 data$Rpercent.seats <- ((data$RepWon/ (data$DemWon + data$RepWon)) *100)
 data$difference <- abs(data$Rpercent.vote - data$Rpercent.seats)
 
-data 
-
 data1 <- data %>% rename(state = State)
 
 
