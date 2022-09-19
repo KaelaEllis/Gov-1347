@@ -101,7 +101,7 @@ lm_econ <- lm(H_incumbent_party_majorvote_pct ~ GDP_growth_pct,
 
 hist(lm_econ$model$H_incumbent_party_majorvote_pct -
 lm_econ$fitted.values,
-main="In Sample Error: True PV - Predicted PV", xlab = "True Incumebent Party PV - Predicted Incumebent Party PV")
+main=" Figure 3: In Sample Error: True PV - Predicted PV", xlab = "True Incumebent Party PV - Predicted Incumebent Party PV")
 ```
 
 ```{r,  message = FALSE, echo=FALSE}
@@ -109,25 +109,12 @@ lm_econ2 <- lm(incumbent.party.net.seats.pct ~ GDP_growth_pct,
               data = dat2.no2020)
 hist(lm_econ2$model$incumbent.party.net.seats.pct -
 lm_econ2$fitted.values,
-main="In Sample Error: True Seat Share - Predicted Seat Share", xlab = "True Incumebent Party Seat Share - Predicted Incumebent Party Seat Share")
+main="Figure 4: In Sample Error: True Seat Share - Predicted Seat Share", xlab = "True Incumebent Party Seat Share - Predicted Incumebent Party Seat Share")
 ```
+I then conducted a quick test for the predictive value of these models. I plotted the in-sample error via residuals, which is the difference between the observed popular vote or seat share and the predicted popular vote or seat share, as indicated by the blue line in figures 1 and 2. 
 
-```{r,  message = FALSE, echo=FALSE}
-outsamp_errors <- sapply(1:1000, function(i){
-    years_outsamp <- sample(dat2.no2020$year, 8)
-  outsamp_mod <- lm(incumbent.party.net.seats.pct ~ 
-                      GDP_growth_pct,
-                  dat2.no2020[!(dat2.no2020$year %in% years_outsamp),])
-  outsamp_pred <- predict(outsamp_mod,
-                newdata = dat2.no2020[dat2.no2020$year %in% years_outsamp,])
-  outsamp_true <- dat2.no2020$incumbent.party.net.seats.pct[dat2.no2020$year 
-                                                       %in% years_outsamp]
-  mean(outsamp_pred - outsamp_true)
-})
+As Figures 3 and 4 reveal, the popular vote model has a higher predictive value than the seat share model. I was able to determine this because figure 3, which represents the sample error for the popular vote model, residuals are spread across the range of -8 to 6 - numbers relatively close to 0 - while the figure 4, the seat share model has, residuals are spread across the range -60 to 60. The range of residuals for figure 4 are much greater and further away from 0, indicating that the model has limited accuracy. Returning to my prediction, I was right in that the GDP growth has a more detectable effect on the popular vote than on the seat share, since the in sample error for popular vote is less than the in sample error for seat share. 
 
-hist(outsamp_errors,
-     xlab = "",
-     main = "Seat Share Mean out-of-Sample Residual\n(1000 runs of cross-validation)")
-```
-```
+7th quarter GDP growth alone is likely a poor predictor of both popular vote and seat share. This was proven by both the in-sample error plots, and the fact that figures 1 and 2 contradict what should occur when economic conditions improve. In future predictions, I must keep in mind that there are more economic factors that are likely better indicators of the effect of the economy on voting. 
+
 

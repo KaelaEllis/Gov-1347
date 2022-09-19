@@ -76,9 +76,10 @@ The first graphic shows the effect of 7th quarter GDP growth on the incumbent pa
 <p>Taking a look at Figure 2, which shows the effect of 7th quarter GDP growth on the incumbent party’s house seat share, we see the same counterintuitive relationship. In future evaluations of the economy, I must keep in mind that 7th quarter GDP growth may not be the best indicator of economic conditions.</p>
 <p>The 7th quarter GDP growth has an indirect relationship with both the popular vote and seat share. One difference between these two variables is that, in terms of popular vote, the incumbent party tends to maintain a majority, whereas, in terms of seat share, the incumbent party tends to lose seats to the extent that they lose the majority.</p>
 <p><img src="http://example.org/post/2022-09-18-blog-post-2/index_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
-<p><img src="http://example.org/post/2022-09-18-blog-post-2/index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
-<p><img src="http://example.org/post/2022-09-18-blog-post-2/index_files/figure-html/unnamed-chunk-5-1.png" width="672" />
-```</p>
+<p><img src="http://example.org/post/2022-09-18-blog-post-2/index_files/figure-html/unnamed-chunk-4-1.png" width="672" />
+I then conducted a quick test for the predictive value of these models. I plotted the in-sample error via residuals, which is the difference between the observed popular vote or seat share and the predicted popular vote or seat share, as indicated by the blue line in figures 1 and 2.</p>
+<p>As Figures 3 and 4 reveal, the popular vote model has a higher predictive value than the seat share model. I was able to determine this because figure 3, which represents the sample error for the popular vote model, residuals are spread across the range of -8 to 6 - numbers relatively close to 0 - while the figure 4, the seat share model has, residuals are spread across the range -60 to 60. The range of residuals for figure 4 are much greater and further away from 0, indicating that the model has limited accuracy. Returning to my prediction, I was right in that the GDP growth has a more detectable effect on the popular vote than on the seat share, since the in sample error for popular vote is less than the in sample error for seat share.</p>
+<p>7th quarter GDP growth alone is likely a poor predictor of both popular vote and seat share. This was proven by both the in-sample error plots, and the fact that figures 1 and 2 contradict what should occur when economic conditions improve. In future predictions, I must keep in mind that there are more economic factors that are likely better indicators of the effect of the economy on voting.</p>
 
 
 		
@@ -95,7 +96,7 @@ The first graphic shows the effect of 7th quarter GDP growth on the incumbent pa
         		<footer>
 			
 			<span>
-			&copy; <time datetime="2022-09-19 13:35:41.7147 -0400 EDT m=&#43;0.085769084">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
+			&copy; <time datetime="2022-09-19 13:55:36.017173 -0400 EDT m=&#43;0.071712667">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
 			</span>
 		</footer>
 
