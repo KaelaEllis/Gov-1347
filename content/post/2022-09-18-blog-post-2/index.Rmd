@@ -117,4 +117,9 @@ As Figures 3 and 4 reveal, the popular vote model has a higher predictive value 
 
 7th quarter GDP growth alone is likely a poor predictor of both popular vote and seat share. This was proven by both the in-sample error plots, and the fact that figures 1 and 2 contradict what should occur when economic conditions improve. In future predictions, I must keep in mind that there are more economic factors that are likely better indicators of the effect of the economy on voting. 
 
+##Refrences
+Christopher H Achen and Larry M Bartels. Democracy for realists: Why elections do not
+produce responsive government, volume 4. Princeton University Press, 2017. URL.
 
+Andrew Healy and Gabriel S Lenz. Substituting the end for the whole: Why voters respond
+primarily to the election-year economy. American journal of political science, 58(1):31–47, 2014. ISSN 0092-5853. URL.
