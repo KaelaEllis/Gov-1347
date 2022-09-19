@@ -8,6 +8,16 @@ tags: []
 ---
 Welcome to my 2022 Midterm blog series. I’m Kaela Ellis, a junior at Harvard College studying Government. This semester I am taking Gov 1347: Election Analytics taught by Professor Ryan Enos, which has led to the creation of this blog. I will use this blog series to predict the 2022 Midterm election. The series will be updated weekly with new predictive measures and analyses of past elections.
 
+##Introduction
+
+This second blog post examines the question of the effect of fundamentals in House elections. In particular, I look to see how the GDP growth affects the predictivity of the popular vote versus the seat share. I predict that the GDP growth will have a more detectable effect on the popular vote than on the seat share. This prediction is informed by the fact that, in a popular vote, voters can directly vote based on whether or not economic conditions are favorable, so the popular vote might be reflective of GDP growth. Meanwhile, the resulting seat share of these votes can be muddled by things like gerrymandering and improper popular vote to seat ratios.  
+
+In investigating the effect of GDP growth on popular vote versus seat share, I choose to only look at the 7th quarter- the last complete quarter before people vote. This decision was largely informed from literature by Healy and Lenz. In their article “Substituting the End for the Whole: Why Voters Respond Primarily to the Election-Year Economy” they explain that when voters evaluate actual economic growth they place roughly 80% more weight on Year 4 than on Year 2 of a presidential term. Thus, the most recent economic conditions are better predictive indicators for how people will vote. 
+
+I also chose to focus on how the GDP growth is linked to the vote share or seat share of the incumbent party. This decision was informed by “Democracy for Realists” by Achen and Bartels. They outline the retrospective voting theory where voters with limited information can choose candidates based on changes in their welfare. Under the sanctioning model, each voter’s well-being depends on the effort expended by the incumbent leader on their behalf. So, if a voter’s welfare has decreased, voters can hold the incumbent accountable by not reelecting them. Under the assumption that GDP growth is linked to voters' well-being, GDP growth will affect the vote share, as voters attempt to hold incumbents accountable and prospectively forecast their future well-being under their leadership.  
+
+##Effect of Q7 GDP Growth
+
 ```{r,  message = FALSE, echo=FALSE}
 library(tidyverse)
 # required packages 
@@ -47,7 +57,7 @@ dat2.no2020 %>%
     xlab("Q7-Q8 GDP growth") +
     ylab("Incumbent party PV") +
     theme_bw() +
-    ggtitle("Effect of Q7 GDP growth on Incumbent Party Popular Vote Share") +
+    ggtitle("Figure 1: Effect of Q7 GDP growth on Incumbent Party Popular Vote Share") +
   theme(axis.text = element_text(size = 12),
           axis.title = element_text(size = 12),
           plot.title = element_text(size = 12))
@@ -64,14 +74,19 @@ dat2.no2020 %>%
     geom_smooth(method="lm", formula = y ~ x) +
     geom_hline(yintercept=0, lty=2) +
     geom_vline(xintercept=0.01, lty=2) + # median
-    xlab("Q7-Q8 GDP growth (X)") +
+    xlab("Q7-Q8 GDP growth") +
     ylab("Incumbent party House Seat Share") +
     theme_bw() +
-    ggtitle("Effect of Q7 GDP growth on Incumbent Party Seat Share") +
+    ggtitle("Figure 2: Effect of Q7 GDP growth on Incumbent Party Seat Share") +
   theme(axis.text = element_text(size = 12),
           axis.title = element_text(size = 12),
           plot.title = element_text(size = 12))
 ```
+The first graphic shows the effect of 7th quarter GDP growth on the incumbent party’s popular vote share. Surprisingly, this graph demonstrates that as GDP growth increases, the incumbent party popular vote share decreases. This indirect relationship is counterintuitive because I assumed that as GDP growth increases, the incumbent party popular vote also increases, which is not reflected in the plot. These variables should have a direct relationship. This counterintuitive result is likely due to 7th quarter GDP growth being a poor indicator of economic conditions.
+
+Taking a look at Figure 2, which shows the effect of 7th quarter GDP growth on the incumbent party’s house seat share, we see the same counterintuitive relationship. In future evaluations of the economy, I must keep in mind that 7th quarter GDP growth may not be the best indicator of economic conditions. 
+
+The 7th quarter GDP growth has an indirect relationship with both the popular vote and seat share. One difference between these two variables is that, in terms of popular vote, the incumbent party tends to maintain a majority, whereas, in terms of seat share, the incumbent party tends to lose seats to the extent that they lose the majority. 
 
 
 ```{r,  message = FALSE, echo=FALSE}

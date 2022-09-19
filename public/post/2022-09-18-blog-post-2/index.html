@@ -65,8 +65,16 @@
 
 
 <p>Welcome to my 2022 Midterm blog series. I’m Kaela Ellis, a junior at Harvard College studying Government. This semester I am taking Gov 1347: Election Analytics taught by Professor Ryan Enos, which has led to the creation of this blog. I will use this blog series to predict the 2022 Midterm election. The series will be updated weekly with new predictive measures and analyses of past elections.</p>
+<p>##Introduction</p>
+<p>This second blog post examines the question of the effect of fundamentals in House elections. In particular, I look to see how the GDP growth affects the predictivity of the popular vote versus the seat share. I predict that the GDP growth will have a more detectable effect on the popular vote than on the seat share. This prediction is informed by the fact that, in a popular vote, voters can directly vote based on whether or not economic conditions are favorable, so the popular vote might be reflective of GDP growth. Meanwhile, the resulting seat share of these votes can be muddled by things like gerrymandering and improper popular vote to seat ratios.</p>
+<p>In investigating the effect of GDP growth on popular vote versus seat share, I choose to only look at the 7th quarter- the last complete quarter before people vote. This decision was largely informed from literature by Healy and Lenz. In their article “Substituting the End for the Whole: Why Voters Respond Primarily to the Election-Year Economy” they explain that when voters evaluate actual economic growth they place roughly 80% more weight on Year 4 than on Year 2 of a presidential term. Thus, the most recent economic conditions are better predictive indicators for how people will vote.</p>
+<p>I also chose to focus on how the GDP growth is linked to the vote share or seat share of the incumbent party. This decision was informed by “Democracy for Realists” by Achen and Bartels. They outline the retrospective voting theory where voters with limited information can choose candidates based on changes in their welfare. Under the sanctioning model, each voter’s well-being depends on the effort expended by the incumbent leader on their behalf. So, if a voter’s welfare has decreased, voters can hold the incumbent accountable by not reelecting them. Under the assumption that GDP growth is linked to voters’ well-being, GDP growth will affect the vote share, as voters attempt to hold incumbents accountable and prospectively forecast their future well-being under their leadership.</p>
+<p>##Effect of Q7 GDP Growth</p>
 <p><img src="http://example.org/post/2022-09-18-blog-post-2/index_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
-<p><img src="http://example.org/post/2022-09-18-blog-post-2/index_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p><img src="http://example.org/post/2022-09-18-blog-post-2/index_files/figure-html/unnamed-chunk-2-1.png" width="672" />
+The first graphic shows the effect of 7th quarter GDP growth on the incumbent party’s popular vote share. Surprisingly, this graph demonstrates that as GDP growth increases, the incumbent party popular vote share decreases. This indirect relationship is counterintuitive because I assumed that as GDP growth increases, the incumbent party popular vote also increases, which is not reflected in the plot. These variables should have a direct relationship. This counterintuitive result is likely due to 7th quarter GDP growth being a poor indicator of economic conditions.</p>
+<p>Taking a look at Figure 2, which shows the effect of 7th quarter GDP growth on the incumbent party’s house seat share, we see the same counterintuitive relationship. In future evaluations of the economy, I must keep in mind that 7th quarter GDP growth may not be the best indicator of economic conditions.</p>
+<p>The 7th quarter GDP growth has an indirect relationship with both the popular vote and seat share. One difference between these two variables is that, in terms of popular vote, the incumbent party tends to maintain a majority, whereas, in terms of seat share, the incumbent party tends to lose seats to the extent that they lose the majority.</p>
 <p><img src="http://example.org/post/2022-09-18-blog-post-2/index_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
 <p><img src="http://example.org/post/2022-09-18-blog-post-2/index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
 <p><img src="http://example.org/post/2022-09-18-blog-post-2/index_files/figure-html/unnamed-chunk-5-1.png" width="672" />
@@ -87,7 +95,7 @@
         		<footer>
 			
 			<span>
-			&copy; <time datetime="2022-09-19 02:52:36.327164 -0400 EDT m=&#43;0.090250209">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
+			&copy; <time datetime="2022-09-19 13:35:41.7147 -0400 EDT m=&#43;0.085769084">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
 			</span>
 		</footer>
 
