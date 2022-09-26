@@ -115,7 +115,7 @@ I then conducted a quick test for the predictive value of these models. I plotte
 
 As Figures 3 and 4 reveal, the popular vote model has a higher predictive value than the seat share model. I was able to determine this because figure 3, which represents the sample error for the popular vote model, residuals are spread across the range of -8 to 6 - numbers relatively close to 0 - while the figure 4, the seat share model has, residuals are spread across the range -60 to 60. The range of residuals for figure 4 are much greater and further away from 0, indicating that the model has limited accuracy. Returning to my prediction, I was right in that the GDP growth has a more detectable effect on the popular vote than on the seat share, since the in sample error for popular vote is less than the in sample error for seat share. 
 
-7th quarter GDP growth alone is likely a poor predictor of both popular vote and seat share. This was proven by both the in-sample error plots, and the fact that figures 1 and 2 contradict what should occur when economic conditions improve. In future predictions, I must keep in mind that there are more economic factors that are likely better indicators of the effect of the economy on voting. 
+7th quarter GDP growth alone is likely a poor predictor of both popular vote and seat share. This was proven by both the in-sample error plots, and the fact that figures 1 and 2 contradict what should occur when economic conditions improve. In future predictions, I must keep in mind that there are other economic factors that are likely better indicators of the effect of the economy on voting. 
 
 ##Refrences
 Christopher H Achen and Larry M Bartels. Democracy for realists: Why elections do not
