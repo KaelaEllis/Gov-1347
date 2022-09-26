@@ -71,9 +71,9 @@ dat2.no2020 %>%
     geom_hline(yintercept=50, lty=2) +
     geom_vline(xintercept=0.01, lty=2) + # median
     xlab("Consumer Sentiment") +
-    ylab("Incumbent party PV") +
+    ylab("Republican party PV") +
     theme_bw()  +
-    ggtitle("Figure 1: Effect of Consumer Sentiment on Incumbent Party Popular Vote Share") +
+    ggtitle("Figure 1: Effect of Consumer Sentiment on Republican Party Popular Vote Share") +
   theme(axis.text = element_text(size = 12),
           axis.title = element_text(size = 12),
           plot.title = element_text(size = 12)) 
