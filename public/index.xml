@@ -13,7 +13,8 @@
       <pubDate>Mon, 26 Sep 2022 00:00:00 +0000</pubDate>
       
       <guid>http://example.org/post/2022-09-26-blog-post-3/</guid>
-      <description>## [1] 51.38605 ## ## Results ## ========================================================================================================================= ## Dependent variable: ## -------------------------------------------------------------------------------------- ## R_majorvote_pct ## CS Gpolls GDP Gpolls + CS ## (1) (2) (3) (4) ## ------------------------------------------------------------------------------------------------------------------------- ## Consumer Sentiment 0.091 0.825*** ## (0.167) (0.028) ## ## Generic Polls 0.329*** 0.616*** ## (0.034) (0.025) ## ## GDP 0.827 ## (0.642) ## ## Generic Polls + Consumer Sentiment 49.826*** 32.860*** 47.150*** 20.072*** ## (0.788) (1.633) (0.701) (1.173) ## ## ------------------------------------------------------------------------------------------------------------------------- ## Observations 15 670 35 670 ## R2 0.</description>
+      <description>Welcome to my 2022 Midterm blog series. I’m Kaela Ellis, a junior at Harvard College studying Government. This semester I am taking Gov 1347: Election Analytics taught by Professor Ryan Enos, which has led to the creation of this blog. I will use this blog series to predict the 2022 Midterm election. The series will be updated weekly with new predictive measures and analyses of past elections.
+This second third post examines the question of the effect of polls in predicting House elections.</description>
     </item>
     
     <item>
