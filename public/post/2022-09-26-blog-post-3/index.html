@@ -76,45 +76,36 @@ Before factoring in polls to my forecast, I returned to my economic indicators t
 ##polls</p>
 <pre><code>## [1] 51.38605</code></pre>
 <p><img src="http://example.org/post/2022-09-26-blog-post-3/index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
-<div id="results" class="section level1">
-<h1>Results</h1>
-<pre><code>                                                                Dependent variable:                                  
-                               --------------------------------------------------------------------------------------
-                                                                  R_majorvote_pct                                    
-                                       CS                 Gpolls                 GDP               Gpolls + CS       
-                                      (1)                   (2)                  (3)                   (4)           </code></pre>
-<table>
-<colgroup>
-<col width="100%" />
-</colgroup>
-<tbody>
-<tr class="odd">
-<td align="left">Consumer Sentiment 0.091 0.825***
-(0.167) (0.028)</td>
-</tr>
-<tr class="even">
-<td align="left">Generic Polls 0.329*** 0.616***
-(0.034) (0.025)</td>
-</tr>
-<tr class="odd">
-<td align="left">GDP 0.827
-(0.642)</td>
-</tr>
-<tr class="even">
-<td align="left">Generic Polls + Consumer Sentiment 49.826*** 32.860*** 47.150*** 20.072***
-(0.788) (1.633) (0.701) (1.173)</td>
-</tr>
-</tbody>
-</table>
-<p>Observations 15 670 35 670<br />
-R2 0.022 0.124 0.048 0.613<br />
-Adjusted R2 -0.053 0.123 0.019 0.611<br />
-Residual Std. Error 2.990 (df = 13) 3.419 (df = 668) 3.093 (df = 33) 2.276 (df = 667)<br />
-F Statistic 0.293 (df = 1; 13) 94.976*** (df = 1; 668) 1.658 (df = 1; 33) 527.214*** (df = 2; 667)
-=========================================================================================================================
-Note: <em>p&lt;0.1; <strong>p&lt;0.05; </strong></em>p&lt;0.01</p>
+<pre><code>## 
+## Results
+## =========================================================================================================================
+##                                                                     Dependent variable:                                  
+##                                    --------------------------------------------------------------------------------------
+##                                                                       R_majorvote_pct                                    
+##                                            CS                 Gpolls                 GDP               Gpolls + CS       
+##                                           (1)                   (2)                  (3)                   (4)           
+## -------------------------------------------------------------------------------------------------------------------------
+## Consumer Sentiment                       0.091                                                           0.825***        
+##                                         (0.167)                                                          (0.028)         
+##                                                                                                                          
+## Generic Polls                                                0.329***                                    0.616***        
+##                                                               (0.034)                                    (0.025)         
+##                                                                                                                          
+## GDP                                                                                 0.827                                
+##                                                                                    (0.642)                               
+##                                                                                                                          
+## Generic Polls + Consumer Sentiment     49.826***             32.860***            47.150***             20.072***        
+##                                         (0.788)               (1.633)              (0.701)               (1.173)         
+##                                                                                                                          
+## -------------------------------------------------------------------------------------------------------------------------
+## Observations                               15                   670                   35                   670           
+## R2                                       0.022                 0.124                0.048                 0.613          
+## Adjusted R2                              -0.053                0.123                0.019                 0.611          
+## Residual Std. Error                 2.990 (df = 13)      3.419 (df = 668)      3.093 (df = 33)       2.276 (df = 667)    
+## F Statistic                        0.293 (df = 1; 13) 94.976*** (df = 1; 668) 1.658 (df = 1; 33) 527.214*** (df = 2; 667)
+## =========================================================================================================================
+## Note:                                                                                         *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
 <p>I then looked at Generic polls post 1992 during Congressional election years only. I used their tendency for error to indicate the error in the 2022 election, so that I can adjust them to predict the 2022 midterm. As Silver and Morris have shown there are many different ways to weigh polls. I took a more basic approach and examined polls on a national, rather than a state or district level. I will approve this in later weeks, focusing more on state or district level data. Using the generic polls alone, the predictivity of my model had a low R2 of 0.124, indicating that it is not a highly statistically significant model. However, when I combined the generic polls with the consumer sentiment data, my models became statistically significant with an R2 of 0.613. Using the polls and consumer sentiment together has shown to produce a more statistically significant prediction. Again, I aim to improve this statistical significance in later iterations of the blog, as I begin to further specify my data and add more indicators. My forecast using these two indicators is that the Republicans will receive 51.39% of the vote share.</p>
-</div>
 
 
 		
@@ -122,6 +113,7 @@ Note: <em>p&lt;0.1; <strong>p&lt;0.05; </strong></em>p&lt;0.01</p>
 
 	<div class="pagination">
 		<a href="/post/2022-09-18-blog-post-2/" class="left arrow">&#8592;</a>
+		<a href="/post/2022-10-03-blog-post-4/" class="right arrow">&#8594;</a>
 
 		<a href="#" class="top">Top</a>
 	</div>
@@ -131,7 +123,7 @@ Note: <em>p&lt;0.1; <strong>p&lt;0.05; </strong></em>p&lt;0.01</p>
         		<footer>
 			
 			<span>
-			&copy; <time datetime="2022-09-26 12:05:14.288929 -0400 EDT m=&#43;0.162645251">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
+			&copy; <time datetime="2022-10-03 13:55:11.469078 -0400 EDT m=&#43;0.166859043">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
 			</span>
 		</footer>
 

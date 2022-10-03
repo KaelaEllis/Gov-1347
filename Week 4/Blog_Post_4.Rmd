@@ -1,0 +1,150 @@
+---
+title: "Gov1347_Blog4"
+author: "kaela"
+date: '2022-10-02'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+How accurate are expert predictions? pt.1 Visualize actual voteshare (seatshare) in 2018 and compare that to various expert
+predictions for that election cycle. How do they compare?
+
+```{r}
+library(tidyverse)
+# required packages 
+require(tidyverse)
+require(ggplot2)
+require(sf)
+library(janitor)
+library(usmap)
+
+```
+
+```{r}
+expert_ratings <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/expert_rating.csv")
+historical_results <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/house party vote share by district 1948-2020.csv") %>% 
+  clean_names()
+expert_ratings2 <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/2018_ratings_share (2).csv")
+expert_ratings2
+```
+
+```{r}
+# Selecting columns
+avg_ratings <- expert_ratings %>% 
+  select(year, state, district, avg_rating)  %>% filter(year == 2018)
+
+dem_results <- historical_results %>% 
+  select(race_year, state, area, dem_votes_major_percent) %>% 
+  rename("year" = "race_year") %>% 
+  separate(area, into = c("area", "district"), sep = " ") %>% 
+  select(-area) %>% 
+  mutate(district = case_when(
+    district == "Large" ~ "AL",
+    TRUE ~ district
+  )) %>% filter(year ==2018)
+
+
+
+# Joining the data and nesting by state and district
+combine_data <- avg_ratings %>% 
+  # left join as there aren't ratings for every district
+  left_join(dem_results, by = c("year", "state", "district"))
+
+combine_data
+ 
+plot_usmap(data = combine_data, regions = "states", values = "avg_rating") +
+scale_fill_gradient2(high = "red", mid = "white", low = "blue",  midpoint = 50, name = "Two-party voteshare margin") +
+theme_void() + labs(title = "2018 National Vote Share by Party")
+
+
+test_data <- avg_ratings %>% 
+  filter(year == 2018) %>% 
+  group_by(state, district) %>% 
+  group_nest() %>% 
+  mutate(data = map(data, ~unnest(., cols = c())))
+```
+
+```{r}
+expert_ratings2 
+ggplot() +
+  geom_sf(data = expert_ratings2, aes(fill = avg),
+          inherit.aes = FALSE, alpha = 0.9) +
+  scale_fill_gradient2(low = "blue", mid = "white", high = "red", 
+                       limits = c(-100, 100),
+                       name = "Vote Share Margin")
++  theme_void() + 
+  coord_sf(xlim = c(-172.27, -66.57), ylim = c(18.55, 71.23), expand = FALSE) + 
+  labs(title = "Vote Share Margin by District for 2018",
+       subtitle = "Red for Republican and blue for Democratic majorities") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+```
+
+
+```{r models}
+models <- combine_data %>% 
+  mutate(model = map(data, ~lm(dem_votes_major_percent ~ avg_rating, 
+                                  data = .x))) %>% 
+  select(-data)
+
+# Extracting TERRIBLE model results
+model_results <- models %>% 
+  mutate(r_squared = map_dbl(model, ~summary(.x)$r.squared))
+
+# Predicting 2022 with a TERRIBLE model
+pred_2022 <- test_data %>%
+  # inner join as there may not be historical models for some districts
+  inner_join(models, by = c("state", "district")) %>% 
+  mutate(pred = map_dbl(.x = model, .y = data, ~predict(object = .x, newdata = as.data.frame(.y)))) %>%
+  select(state, district, pred)
+```
+```{r}
+combine_data
+plot_usmap(data = combine_data, regions = "states", values = "avg_rating") +
+scale_fill_gradient2(high = "red", mid = "white", low = "blue",  midpoint = 4, name = "Two-party voteshare margin") +
+theme_void() + labs(title = "2018 Expert Rating")
+
+plot_usmap(data = combine_data, regions = "states", values = "dem_votes_major_percent") +
+scale_fill_gradient2(high = "blue", mid = "white", low = "red",  midpoint = 50, name = "Two-party voteshare margin") +
+theme_void() + labs(title = "2018 Actual Voteshare")
+```
+
+
+```{r}
+incumb <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/incumb_dist_1948-2022 (2).csv")
+
+incumbwon <- incumb %>% 
+select(year, winner_party, winner_candidate, winner_candidate_inc) %>%
+mutate(winparty_last = lag(winner_party, order_by = year),
+wincand_last = lag(winner_candidate, order_by = year),
+wincand_last_inc = lag(winner_candidate_inc, order_by = year)) %>%
+mutate(reelect.cand = wincand_last_inc == winner_candidate_inc) %>%
+filter(year > 1948) %>%
+group_by(reelect.cand) %>%
+summarise(n = n()) %>%
+as.data.frame() 
+```
+```{r}
+##how to indicate presidents party variable?
+partywon <- incumb %>%
+mutate(winparty_last = lag(winner_party, order_by = year),
+wincand_last = lag(winner_candidate, order_by = year)) %>%
+mutate(reelect.party = winparty_last) %>%
+filter(year > 1948) %>%
+group_by(reelect.party) %>%
+summarise(n = n()) %>%
+as.data.frame() 
+partywon
+```
+
+```{r}
+
+```
+

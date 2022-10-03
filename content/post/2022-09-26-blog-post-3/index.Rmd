@@ -164,7 +164,7 @@ legend("bottomleft", c("Actual VS", "Consumer Sentiment Only", "Generic Polls On
        col = c("black", "darkgreen", "pink", "blue", "purple"))
 ```
 
-```{r, message = FALSE, echo=FALSE, results='asis'}
+```{r, message = FALSE, echo=FALSE, results='TRUE'}
 stargazer(lm_CS, lm_Gpolls, lm_econ,lm_all, title = "Results", type = "text", column.labels = c("CS","Gpolls", "GDP", "Gpolls + CS"), covariate.labels = c("Consumer Sentiment", "Generic Polls", "GDP", "Generic Polls + Consumer Sentiment"))
 
 ```
