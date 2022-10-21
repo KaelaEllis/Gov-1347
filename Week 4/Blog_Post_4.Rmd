@@ -106,6 +106,20 @@ pred_2022 <- test_data %>%
   select(state, district, pred)
 ```
 ```{r}
+ggplot() + 
+  geom_sf(data=combine_data,aes(fill=Dem_votes_pct),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2(low = "red", high = "blue", midpoint = 50, limits=c(0,100)) +
+  coord_sf(xlim = c(-172.27, -66.57), ylim = c(18.55, 71.23), expand = FALSE) +  
+  theme_void() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) + ggtitle("Actual (D) Vote Share in 2018 Midterm Elections") 
+
+
 combine_data
 plot_usmap(data = combine_data, regions = "states", values = "avg_rating") +
 scale_fill_gradient2(high = "red", mid = "white", low = "blue",  midpoint = 4, name = "Two-party voteshare margin") +
@@ -142,6 +156,8 @@ group_by(reelect.party) %>%
 summarise(n = n()) %>%
 as.data.frame() 
 partywon
+
+
 ```
 
 ```{r}

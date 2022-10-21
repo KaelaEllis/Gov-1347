@@ -1,0 +1,439 @@
+---
+title: "Blog Post 5"
+author: "R package build"
+date: '2022-10-11'
+output: pdf_document
+categories: []
+tags: []
+slug: []
+---
+Welcome to my 2022 Midterm blog series. I’m Kaela Ellis, a junior at Harvard College studying Government. This semester I am taking Gov 1347: Election Analytics taught by Professor Ryan Enos, which has led to the creation of this blog. I will use this blog series to predict the 2022 Midterm election. The series will be updated weekly with new predictive measures and analyses of past elections.
+
+In this week’s blog post I will be examining the effectiveness of ads, and how ads can be used to predict elections. I will first examine some relevant literature on the effect of ads. According to literature, such as Lynn Vavreck’s “The Message Matters” and Gerber et al.’s “How Large and Long Lasting are the Persuasive Effects of Televised Campaign Ads?”, television ads appear to have a rapid decay effect. Gerber et al. explain how, for house elections, two to three days after the ad has aired its effect has almost completely disappeared. However, there is evidence from these papers that ads change the weight that voters attach to certain issues. Therefore, the content of ads do matter. 
+
+In Lynn Vavreck’s “The Message Matters”, she explains candidates should make ads that play into their role as either an insurgent or clarifying candidate. A clarifying candidate is candidate that is the candidate that the economy benefits – the Republican party in this election. She argues that these candidates should focus on the economy in their advertisements, and if they fail to do so they’re victory rate decreases to ⅖. Meanwhile the insurgent candidate is the candidate that the economy does not benefit – the Democratic party. According to Vavreck, the insurgent candidate should use ads to refocus the election off the economy; they should ideally focus on an issue that they have previously taken and that they are closer to most voters on. Insurgents are at a disadvantage, but they can win elections by priming the correct issues. For example, JFK won as an insurgent candidate against Nixon by focusing on the war agaisnt communism. The Democratic party has done this for the 2022 midterm by focusing on other issues such as Abortion rights. The limit in my analysis for this week is that I do not have advertising data for 2022, so I can not determine which issues each party has ran the most ads on. 
+
+
+
+```{r, message = FALSE, echo=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(readr)
+require(ggplot2)
+require(sf)
+library(janitor)
+
+# load datasets
+pvstate_df   <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/incumb_dist_1948-2022 (2).csv")
+#pvstate_df   <- 'incumb_dist_1948-2020 (3)'
+ad_creative  <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 5/ads_2006_2018 (1).csv")
+ad_issues <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 5/ads_issues_2012-2018 (1).csv")
+
+```
+
+```{r, message = FALSE, echo=FALSE}
+expert_ratings <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/expert_rating.csv")
+historical_results <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/house party vote share by district 1948-2020.csv") %>% 
+  clean_names()
+expert_ratings2 <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/2018_ratings_share (2).csv")
+```
+
+```{r}
+# Selecting columns
+avg_ratings <- expert_ratings %>% 
+  select(year, state, district, avg_rating)  %>% filter(year == 2018) %>%  rename("DISTRICT" = "district") %>% rename("STATENAME" = "state") %>%  drop_na()
+dem_results <- historical_results %>% 
+  select(race_year, state, area, dem_votes_major_percent, district_num) %>% 
+  rename("year" = "race_year") %>%  rename("DISTRICT" = "district_num") %>% rename("STATENAME" = "state") %>% filter(year ==2018)
+```
+
+```{r, message = FALSE, echo=FALSE}
+get_congress_map <- function(cong=114) {
+  tmp_file <- tempfile()
+  tmp_dir  <- tempdir()
+  zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts114.zip",cong)
+  download.file(zp, tmp_file)
+  unzip(zipfile = tmp_file, exdir = tmp_dir)
+  fpath <- paste(tmp_dir, sprintf("districtShapes/districts114.shp",cong), sep = "/")
+  st_read(fpath)
+}
+
+cd114 <- get_congress_map(114)
+
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+cd114 <- cd114 %>% left_join(dem_results, by=c("DISTRICT", "STATENAME"))
+```
+
+```{r, message = FALSE, echo=FALSE}
+ad_freq_2006 <- ad_creative %>%  separate(airdate, into = c("year", "month", "day"), sep = "-") %>% 
+  select(year, state, district, party) %>% filter(year == 2006) %>%  rename("DISTRICT" = "district") %>% rename("STATENAME" = "state") 
+
+ad_freq_pretty_2006 <- table(ad_freq_2006$STATENAME, ad_freq_2006$DISTRICT,  useNA = 'always')
+
+ad_freq_p_2006 <- ad_freq_pretty_2006 %>%  data.frame(ad_freq_pretty_2006) %>% rename("DISTRICT" = "Var2") %>% rename("STATENAME" = "Var1") %>% rename("ad_freq" = "Freq") %>% select(STATENAME, DISTRICT, ad_freq)
+
+  ad_freq_new_2006 <- subset(ad_freq_p_2006, ad_freq != 0) 
+  ad_freq_new_2006 <- data.frame(ad_freq_new_2006)
+  
+ 
+dem_results_2006 <- historical_results %>% 
+  select(race_year, state, area, dem_votes_major_percent, district_num) %>% 
+  rename("year" = "race_year") %>%  rename("DISTRICT" = "district_num") %>% rename("STATENAME" = "state") %>% filter(year == 2006)
+```
+
+```{r, message = FALSE, echo=FALSE}
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+ad_freq_new_2006$DISTRICT <- as.numeric(ad_freq_new_2006$DISTRICT)
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+ad_freq_new_2006$STATENAME <- as.character(ad_freq_new_2006$STATENAME)
+cd114$STATENAME <- as.character(cd114$STATENAME)
+
+cd2006 <- cd114 %>% left_join(ad_freq_new_2006, by=c("DISTRICT", "STATENAME"))
+districts_simp_2006 <- rmapshaper::ms_simplify(cd2006, keep = 0.01)
+fig2006.1 <- ggplot() + 
+  geom_sf(data=districts_simp_2006,aes(fill=ad_freq),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2("Number of Ads") +
+  coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "2006 Ads by District") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+cd2006_dem <- cd114 %>% left_join(dem_results_2006, by=c("DISTRICT", "STATENAME"))
+districts_simp_2006_dem <- rmapshaper::ms_simplify(cd2006_dem, keep = 0.01)
+
+fig2006.2 <- ggplot() + 
+  geom_sf(data=districts_simp_2006_dem,aes(fill=dem_votes_major_percent.y),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2(high = "red", mid = "white", low = "blue",  midpoint = 50, name = "Two-party voteshare margin") +
+  coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "2006 National Vote Share by Party") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+```
+
+```{r, message = FALSE, echo=FALSE}
+ad_freq_2012 <- ad_creative %>%  separate(airdate, into = c("year", "month", "day"), sep = "-") %>% 
+  select(year, state, district, party) %>% filter(year == 2012) %>%  rename("DISTRICT" = "district") %>% rename("STATENAME" = "state") 
+
+ad_freq_pretty_2012 <- table(ad_freq_2012$STATENAME, ad_freq_2012$DISTRICT,  useNA = 'always')
+
+ad_freq_p_2012 <- ad_freq_pretty_2012 %>%  data.frame(ad_freq_pretty_2012) %>% rename("DISTRICT" = "Var2") %>% rename("STATENAME" = "Var1") %>% rename("ad_freq" = "Freq") %>% select(STATENAME, DISTRICT, ad_freq)
+
+  ad_freq_new_2012 <- subset(ad_freq_p_2012, ad_freq != 0) 
+  ad_freq_new_2012 <- data.frame(ad_freq_new_2012)
+  
+ 
+dem_results_2012 <- historical_results %>% 
+  select(race_year, state, area, dem_votes_major_percent, district_num) %>% 
+  rename("year" = "race_year") %>%  rename("DISTRICT" = "district_num") %>% rename("STATENAME" = "state") %>% filter(year == 2012)
+```
+
+```{r, message = FALSE, echo=FALSE}
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+ad_freq_new_2012$DISTRICT <- as.numeric(ad_freq_new_2012$DISTRICT)
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+ad_freq_new_2012$STATENAME <- as.character(ad_freq_new_2012$STATENAME)
+cd114$STATENAME <- as.character(cd114$STATENAME)
+
+cd2012 <- cd114 %>% left_join(ad_freq_new_2012, by=c("DISTRICT", "STATENAME"))
+districts_simp_2012 <- rmapshaper::ms_simplify(cd2012, keep = 0.01)
+fig2012.1 <- ggplot() + 
+  geom_sf(data=districts_simp_2012,aes(fill=ad_freq),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2("Number of Ads") +
+  coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "2012 Ads by District") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+cd2012_dem <- cd114 %>% left_join(dem_results_2012, by=c("DISTRICT", "STATENAME"))
+districts_simp_2012_dem <- rmapshaper::ms_simplify(cd2012_dem, keep = 0.01)
+
+fig2012.2 <- ggplot() + 
+  geom_sf(data=districts_simp_2012_dem,aes(fill=dem_votes_major_percent.y),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2(high = "red", mid = "white", low = "blue",  midpoint = 50, name = "Two-party voteshare margin") +
+  coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "2012 National Vote Share by Party") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+```
+
+```{r, message = FALSE, echo=FALSE}
+ad_freq_2010 <- ad_creative %>%  separate(airdate, into = c("year", "month", "day"), sep = "-") %>% 
+  select(year, state, district, party) %>% filter(year == 2010) %>%  rename("DISTRICT" = "district") %>% rename("STATENAME" = "state") 
+
+ad_freq_pretty_2010 <- table(ad_freq_2010$STATENAME, ad_freq_2010$DISTRICT,  useNA = 'always')
+
+ad_freq_p_2010 <- ad_freq_pretty_2010 %>%  data.frame(ad_freq_pretty_2010) %>% rename("DISTRICT" = "Var2") %>% rename("STATENAME" = "Var1") %>% rename("ad_freq" = "Freq") %>% select(STATENAME, DISTRICT, ad_freq)
+
+  ad_freq_new_2010 <- subset(ad_freq_p_2010, ad_freq != 0) 
+  ad_freq_new_2010 <- data.frame(ad_freq_new_2010)
+  
+ 
+dem_results_2010 <- historical_results %>% 
+  select(race_year, state, area, dem_votes_major_percent, district_num) %>% 
+  rename("year" = "race_year") %>%  rename("DISTRICT" = "district_num") %>% rename("STATENAME" = "state") %>% filter(year == 2010)
+```
+
+```{r, message = FALSE, echo=FALSE}
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+ad_freq_new_2010$DISTRICT <- as.numeric(ad_freq_new_2010$DISTRICT)
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+ad_freq_new_2010$STATENAME <- as.character(ad_freq_new_2010$STATENAME)
+cd114$STATENAME <- as.character(cd114$STATENAME)
+
+cd2010 <- cd114 %>% left_join(ad_freq_new_2010, by=c("DISTRICT", "STATENAME"))
+districts_simp_2010 <- rmapshaper::ms_simplify(cd2010, keep = 0.01)
+fig2010.1 <- ggplot() + 
+  geom_sf(data=districts_simp_2010,aes(fill=ad_freq),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2("Number of Ads") +
+  coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "2010 Ads by District") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+cd2010_dem <- cd114 %>% left_join(dem_results_2010, by=c("DISTRICT", "STATENAME"))
+districts_simp_2010_dem <- rmapshaper::ms_simplify(cd2010_dem, keep = 0.01)
+
+fig2010.2<- ggplot() + 
+  geom_sf(data=districts_simp_2010_dem,aes(fill=dem_votes_major_percent.y),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2(high = "red", mid = "white", low = "blue",  midpoint = 50, name = "Two-party voteshare margin") +
+  coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "2010 National Vote Share by Party") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+```
+
+```{r, message = FALSE, echo=FALSE}
+ad_freq_2014 <- ad_creative %>%  separate(airdate, into = c("year", "month", "day"), sep = "-") %>% 
+  select(year, state, district, party) %>% filter(year == 2014) %>%  rename("DISTRICT" = "district") %>% rename("STATENAME" = "state") 
+
+ad_freq_pretty_2014 <- table(ad_freq_2014$STATENAME, ad_freq_2014$DISTRICT,  useNA = 'always')
+
+ad_freq_p_2014 <- ad_freq_pretty_2014 %>%  data.frame(ad_freq_pretty_2014) %>% rename("DISTRICT" = "Var2") %>% rename("STATENAME" = "Var1") %>% rename("ad_freq" = "Freq") %>% select(STATENAME, DISTRICT, ad_freq)
+
+  ad_freq_new_2014 <- subset(ad_freq_p_2014, ad_freq != 0) 
+  ad_freq_new_2014 <- data.frame(ad_freq_new_2014)
+  
+ 
+dem_results_2014 <- historical_results %>% 
+  select(race_year, state, area, dem_votes_major_percent, district_num) %>% 
+  rename("year" = "race_year") %>%  rename("DISTRICT" = "district_num") %>% rename("STATENAME" = "state") %>% filter(year == 2014)
+```
+
+```{r, message = FALSE, echo=FALSE}
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+ad_freq_new_2014$DISTRICT <- as.numeric(ad_freq_new_2014$DISTRICT)
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+ad_freq_new_2014$STATENAME <- as.character(ad_freq_new_2014$STATENAME)
+cd114$STATENAME <- as.character(cd114$STATENAME)
+
+cd2014 <- cd114 %>% left_join(ad_freq_new_2014, by=c("DISTRICT", "STATENAME"))
+districts_simp_2014 <- rmapshaper::ms_simplify(cd2014, keep = 0.01)
+fig2014.1 <- ggplot() + 
+  geom_sf(data=districts_simp_2014,aes(fill=ad_freq),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2("Number of Ads") +
+  coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "2014 Ads by District") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+cd2014_dem <- cd114 %>% left_join(dem_results_2014, by=c("DISTRICT", "STATENAME"))
+districts_simp_2014_dem <- rmapshaper::ms_simplify(cd2014_dem, keep = 0.01)
+
+fig2014.2 <- ggplot() + 
+  geom_sf(data=districts_simp_2014_dem,aes(fill=dem_votes_major_percent.y),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2(high = "red", mid = "white", low = "blue",  midpoint = 50, name = "Two-party voteshare margin") +
+  coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "2014 National Vote Share by Party") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+```
+
+
+```{r, message = FALSE, echo=FALSE}
+ad_freq_2016 <- ad_creative %>%  separate(airdate, into = c("year", "month", "day"), sep = "-") %>% 
+  select(year, state, district, party) %>% filter(year == 2016) %>%  rename("DISTRICT" = "district") %>% rename("STATENAME" = "state") 
+
+ad_freq_pretty_2016 <- table(ad_freq_2016$STATENAME, ad_freq_2016$DISTRICT,  useNA = 'always')
+
+ad_freq_p_2016 <- ad_freq_pretty_2016 %>%  data.frame(ad_freq_pretty_2016) %>% rename("DISTRICT" = "Var2") %>% rename("STATENAME" = "Var1") %>% rename("ad_freq" = "Freq") %>% select(STATENAME, DISTRICT, ad_freq)
+
+  ad_freq_new_2016 <- subset(ad_freq_p_2016, ad_freq != 0) 
+  ad_freq_new_2016 <- data.frame(ad_freq_new_2016)
+  
+ 
+dem_results_2016 <- historical_results %>% 
+  select(race_year, state, area, dem_votes_major_percent, district_num) %>% 
+  rename("year" = "race_year") %>%  rename("DISTRICT" = "district_num") %>% rename("STATENAME" = "state") %>% filter(year == 2016)
+```
+
+```{r, message = FALSE, echo=FALSE}
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+ad_freq_new_2016$DISTRICT <- as.numeric(ad_freq_new_2016$DISTRICT)
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+ad_freq_new_2016$STATENAME <- as.character(ad_freq_new_2016$STATENAME)
+cd114$STATENAME <- as.character(cd114$STATENAME)
+
+cd2016 <- cd114 %>% left_join(ad_freq_new_2016, by=c("DISTRICT", "STATENAME"))
+districts_simp_2016 <- rmapshaper::ms_simplify(cd2016, keep = 0.01)
+fig2016.1 <- ggplot() + 
+  geom_sf(data=districts_simp_2016,aes(fill=ad_freq),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2("Number of Ads") +
+  coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "2016 Ads by District") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+cd2016_dem <- cd114 %>% left_join(dem_results_2016, by=c("DISTRICT", "STATENAME"))
+districts_simp_2016_dem <- rmapshaper::ms_simplify(cd2016_dem, keep = 0.01)
+
+fig2016.2 <- ggplot() + 
+  geom_sf(data=districts_simp_2016_dem,aes(fill=dem_votes_major_percent.y),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2(high = "red", mid = "white", low = "blue",  midpoint = 50, name = "Two-party voteshare margin") +
+  coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "2016 National Vote Share by Party") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+```
+
+```{r, message = FALSE, echo=FALSE}
+library(ggplot2)
+library(gridExtra)
+library(cowplot)
+
+plot_grid(fig2006.1, fig2006.2, fig2010.1, fig2010.2, fig2012.1, fig2012.2, ncol = 2)
+plot_grid(fig2014.1, fig2014.2, fig2016.1, fig2016.2, ncol = 2)
+```
+The above graphs compare the number ads in each district to the voteshare. By comparing the years, I can examine if states with higher ads leads to a flip in that district from cycle to cycle. In 2010, Arkansas' 1st district had high ads and flipped. In 2012, some districts with high ads that flipped: Minnesota's 8th, New York's 21st, Texas' 23rd, and others. In 2014, Arizona's 1st had high ads and flipped. There are many clear limitations to this. First being, I do not have ad data on most districts. Therefore, I can only see the effects of ads on a very small scale. Additionally, academic literature, particularly focusing on that of Gerber et al., highlights how especially in midterm elections the effects of ads have such a short lifetime. Gerber et al. found that ads during midterm elections have a lifetime of two to three days. Being this, in addition to the limited ad data, including ads in my final prediction would not be wise. 
+
+```{r, message = FALSE, echo=FALSE}
+# Selecting columns
+ad_freq <- ad_creative %>%  separate(airdate, into = c("year", "month", "day"), sep = "-") %>% 
+  select(year, state, district) %>% filter(year == 2018) %>%  rename("DISTRICT" = "district") %>% rename("STATENAME" = "state") 
+ad_freq_pretty <- table(ad_freq$STATENAME, ad_freq$DISTRICT,  useNA = 'always')
+
+ad_freq_pretty1 <- ad_freq_pretty %>%  data.frame(ad_freq_pretty) %>% rename("DISTRICT" = "Var2") %>% rename("STATENAME" = "Var1") %>% rename("ad_freq" = "Freq") %>% select(STATENAME, DISTRICT, ad_freq)
+
+  ad_freq_new <- subset(ad_freq_pretty1, ad_freq != 0) 
+  ad_freq_new <- data.frame(ad_freq_new)
+  
+ 
+dem_results <- historical_results %>% 
+  select(race_year, state, area, dem_votes_major_percent, district_num) %>% 
+  rename("year" = "race_year") %>%  rename("DISTRICT" = "district_num") %>% rename("STATENAME" = "state") %>% filter(year ==2018)
+```
+
+```{r, message = FALSE, echo=FALSE}
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+ad_freq_new$DISTRICT <- as.numeric(ad_freq_new$DISTRICT)
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+ad_freq_new$STATENAME <- as.character(ad_freq_new$STATENAME)
+cd114$STATENAME <- as.character(cd114$STATENAME)
+
+cd116 <- cd114 %>% left_join(ad_freq_new, by=c("DISTRICT", "STATENAME"))
+districts_simp <- rmapshaper::ms_simplify(cd116, keep = 0.01)
+ggplot() + 
+  geom_sf(data=districts_simp,aes(fill=ad_freq),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2("Number of Ads") +
+  coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "2018 Number of Ads by District") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+```
+
+```{r, message = FALSE, echo=FALSE}
+districts_simp <- rmapshaper::ms_simplify(cd114, keep = 0.01)
+ggplot() + 
+  geom_sf(data=districts_simp,aes(fill=dem_votes_major_percent),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2(high = "red", mid = "white", low = "blue",  midpoint = 50, name = "Two-party voteshare margin") +
+  coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "2018 National Vote Share by Party") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+```
+The above graph shows the number of ads aired in each district and the actual voteshare of that district. When comparing this to the 2016 voteshare, the districts that I have ad data on did not flip. Ads could have been used to keep that district in the given party, but the effect of ads is unclear, and literature is weak in supporting that ads make a signifigant difference in elections. Since the data is so limited I will not be using ad data in my final predictions, and my prediction remains that Republicans will receive 51.39% of the vote share. 
+
+
+
+```{r, message = FALSE, echo=FALSE}
+
+ad_issues <- subset(ad_issues, issue %in% c("TAXES|TAXES: REFORM", "TAXES|HOUSING/HOME OWNERSHIP", "TAXESIHEALTHCARE", "TAXES/EDUCATION", "TAXES|BUDGET/GOVERNMENT SPENDING", "TAXES: REFORMITAXES", "TAXES", "SOCIAL SECURITYIJOBS/UNEMPLOYMENT", "RETIREMENT", "JOBS/UNEMPLOYMENT/VETERANS AFFAIRS", "JOBS/UNEMPLOYMENTIJOBS/UNEMPLOYMENT: OUTSOURCING", "JOBS/UNEMPLOYMENTIHEALTHCARE", "JOBS/UNEMPLOYMENTIENERGY/ENVIRONMENTIECONOMY", "JOBS/UNEMPLOYMENT, BUDGET/GOVERNMENT SPENDINGIEDUCATION", "BUDGET/GOVERNMENT SPENDING")) 
+
+ad_issues %>%
+  group_by(cycle) %>% mutate(tot_n=n()) %>% ungroup() %>%
+  group_by(cycle, issue, party) %>% summarise(pct=n()*100/first(tot_n)) %>%
+  filter(!is.na(issue), !is.na(party)) %>%
+ 
+  ggplot(aes(x = cycle, y = pct, fill = party, group = issue)) +
+  geom_bar(stat = "identity") +
+  scale_x_continuous(breaks = c(2006, 2010, 2012, 2014, 2016, 2018)) +
+  # ggtitle("Campaign Ads Aired By Purpose") +
+  scale_fill_manual(values = c("blue","red"), name = "party") +
+  xlab("") + ylab("%") + labs(title = "Percent of Economic Ads") +
+  facet_wrap(~ party) + theme_minimal() +
+  theme(axis.title = element_text(size=20),
+        axis.text = element_text(size=15),
+        strip.text.x = element_text(size = 20))
+```
+
+The above graph shows the percent of ads that each party ran that focused on an economic issue. I selected the most popular economic related issues, most of which had to do with taxes, jobs, and unemployment. The Republicans tend to focus on the economy. However in 2014, when the unemployment rate hit 2007 level, having fallen back down after the 2008 financial crisis, the Democrats ads exceeded that of Republicans. The Democrats were the clarifying candidate in 2014, and their ads reflected this. They were also able to gain seats in the house. Democrats are currently the insurgent candidate, and without data I am limited to using 2018 ad data to infer that their primary ad issue will not be the economy. 

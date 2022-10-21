@@ -69,3 +69,7 @@ pred_2022 <- test_data %>%
   select(state, district, pred)
 ```
 
+```{r}
+
+```
+

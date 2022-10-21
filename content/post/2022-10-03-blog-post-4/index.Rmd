@@ -1,19 +1,32 @@
 ---
-title: Blog Post 4
-author: Kaela Ellis
+title: "Blog Post 4"
+author: "Kaela Ellis"
 date: '2022-10-03'
-slug: []
+output: pdf_document
 categories: []
 tags: []
+slug: []
 ---
 ```{r,  message = FALSE, echo=FALSE}
 library(tidyverse)
-# required packages 
-require(tidyverse)
-require(ggplot2)
-require(sf)
 library(janitor)
+library(glmnet)
+library(sf)
+library(plotly)
 library(usmap)
+library(rmapshaper)
+library(blogdown)
+library(gridExtra)
+library(stargazer)
+library(lubridate)
+#library(caret)
+library(leaps)
+library(ggthemes)
+#library(usdata)
+#library(gt)
+#library(gtsummary)
+library(cowplot)
+
 ```
 
 Welcome to my 2022 Midterm blog series. I’m Kaela Ellis, a junior at Harvard College studying Government. This semester I am taking Gov 1347: Election Analytics taught by Professor Ryan Enos, which has led to the creation of this blog. I will use this blog series to predict the 2022 Midterm election. The series will be updated weekly with new predictive measures and analyses of past elections.
@@ -22,7 +35,7 @@ This fourth post examines the question of the effect of incumbency of elections.
 
 There is a widely accepted theory among forecasters called the incumbency advantage. Statistically incumbents have an advantage when it comes to reelection. I will first draw on the novel “Incumbency Advantage in US Presidential Elections: the historical record” by David Mayhew to explain the multiple reasons why elections see this incumbency advantage. Mayhew lists a few different reasons for the incumbency advantage. The first is that incumbents have capabilities while holding office that make them stronger candidates. These capabilities are things such as basic skills, having resources, ability to command attention, make pork barrel concessions, and prerogatives, such as choosing when to sign bills, make speeches, and issue executive orders at advantageous times. Another possible reason for the incumbency advantage is that incumbents are good at campaigning; they have won before and likely have a seasoned campaign manager. Another reason is that voters may be risk-averse, entering in a mentality of ‘the devil you know may be a better bet than the one you don’t know’. There are also perceived start-up costs of a new administration. There may be other factors of voter psychology, as people will revote for the incumbent to convince themselves that they did not make a mistake. Mayhew also discusses Zaller’s prizefighter theory of how incumbents are better competitors than most opponents. These are all reasons as to why during the postwar era only 4 incumbent presidents have lost reelection. 
 
-Specific to congressional elections, incumbents who have been in office for a single term tend to lose, while incumbents who have been there for multiple terms tend to get reelected. In determining the incumbency effect on congressional elections, it may be helpful to identify the incumbents by district and determine how many sessions they have held office for. While I plan to conduct this analysis later, this week I choose to look at how expert predictions differ from actual election results. 
+Specific to congressional elections, incumbents who have been in office for a single term tend to lose, while incumbents who have been there for multiple terms tend to get reelected. In determining the incumbency effect on congressional elections, it may be helpful to identify the incumbents by district and determine how many sessions they have held office for. 
 
 
 ```{r,  message = FALSE, echo=FALSE}
@@ -35,58 +48,250 @@ expert_ratings2 <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/2018_ratings_shar
 ```{r,  message = FALSE, echo=FALSE}
 # Selecting columns
 avg_ratings <- expert_ratings %>% 
-  select(year, state, district, avg_rating)  %>% filter(year == 2018)
-
+  select(year, state, district, avg_rating)  %>% filter(year == 2018) %>%  rename("DISTRICT" = "district") %>% rename("STATENAME" = "state") %>%  drop_na()
 dem_results <- historical_results %>% 
-  select(race_year, state, area, dem_votes_major_percent) %>% 
-  rename("year" = "race_year") %>% 
-  separate(area, into = c("area", "district"), sep = " ") %>% 
-  select(-area) %>% 
-  mutate(district = case_when(
-    district == "Large" ~ "AL",
-    TRUE ~ district
-  )) %>% filter(year ==2018)
+  select(race_year, state, area, dem_votes_major_percent, district_num) %>% 
+  rename("year" = "race_year") %>%  rename("DISTRICT" = "district_num") %>% rename("STATENAME" = "state") %>% filter(year ==2018)
+```
+
+
+
+
+```{r, message = FALSE, echo=FALSE}
+get_congress_map <- function(cong=114) {
+  tmp_file <- tempfile()
+  tmp_dir  <- tempdir()
+  zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts114.zip",cong)
+  download.file(zp, tmp_file)
+  unzip(zipfile = tmp_file, exdir = tmp_dir)
+  fpath <- paste(tmp_dir, sprintf("districtShapes/districts114.shp",cong), sep = "/")
+  st_read(fpath)
+}
+
+cd114 <- get_congress_map(114)
+
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+cd114 <- cd114 %>% left_join(dem_results, by=c("DISTRICT", "STATENAME"))
+
 
 ```
 
-```{r,  message = FALSE, echo=FALSE}
-# Joining the data and nesting by state and district
-combine_data <- avg_ratings %>% 
-  # left join as there aren't ratings for every district
-  left_join(dem_results, by = c("year", "state", "district"))
+```{r, message = FALSE, echo=FALSE}
+districts_simp <- rmapshaper::ms_simplify(cd114, keep = 0.01)
+ggplot() + 
+  geom_sf(data=districts_simp,aes(fill=dem_votes_major_percent),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2(high = "red", mid = "white", low = "blue",  midpoint = 50, name = "Two-party voteshare margin") +
+  coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "2018 National Vote Share by Party") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+  
 ```
 
-```{r,  message = FALSE, echo=FALSE}
-plot_usmap(data = combine_data, regions = "states", values = "avg_rating") +
-scale_fill_gradient2(high = "red", mid = "white", low = "blue",  midpoint = 4, name = "Two-party voteshare margin") +
-theme_void() + labs(title = "2018 Expert Rating")
+```{r, message = FALSE, echo=FALSE}
+avg_ratings$DISTRICT <- as.numeric(avg_ratings$DISTRICT)
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+avg_ratings$STATENAME <- as.character(avg_ratings$STATENAME)
+cd114$STATENAME <- as.character(cd114$STATENAME)
+cd115 <- cd114 %>% left_join(avg_ratings, by=c("DISTRICT", "STATENAME")) 
+districts_simpexpert <- rmapshaper::ms_simplify(cd115, keep = 0.01) 
 
-plot_usmap(data = combine_data, regions = "states", values = "dem_votes_major_percent") +
-scale_fill_gradient2(high = "blue", mid = "white", low = "red",  midpoint = 50, name = "Two-party voteshare margin") +
-theme_void() + labs(title = "2018 Actual Voteshare")
+  ggplot() + 
+  geom_sf(data=districts_simpexpert, aes(fill=avg_rating),
+            inherit.aes=FALSE,alpha=0.9) + 
+   scale_fill_gradient2(high = "red", mid = "white", low = "blue",  midpoint = 3.5, name = "Two-party voteshare margin") +
+  coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "Expert Predictions 2018 National Vote Share by Party") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
 ```
+The above graph compares district level expert predictions to the actual national voteshare. Compared to the actual national voteshare, the expert predictions seem to be miscategorizing some states as safe, when in reality they are not. For example, the experts categorized California's first district as Republican safe, when in reality it was taken by the Democrats. This is also seen in California's 3rd district, in addition to other districts. Overall, experts seem to experience overconfidence in their predictions. If I choose to incorporate district level expert predictions in my final, I will use other factors to lessen the effect of expert overconfidence. 
+
+
 ```{r, message = FALSE, echo=FALSE}
 incumb <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/incumb_dist_1948-2022 (2).csv")
 
-incumbwon <- incumb %>% 
-select(year, winner_party, winner_candidate, winner_candidate_inc) %>%
-mutate(winparty_last = lag(winner_party, order_by = year),
-wincand_last = lag(winner_candidate, order_by = year),
-wincand_last_inc = lag(winner_candidate_inc, order_by = year)) %>%
-mutate(reelect.cand = wincand_last_inc == winner_candidate_inc) %>%
-filter(year > 1948) %>%
-group_by(reelect.cand) %>%
-summarise(n = n()) %>%
-as.data.frame() 
+incumb_ed <- incumb %>%
+  group_by(year) %>% mutate(tot_n=n()) %>% ungroup() %>%
+  ## this one is get numerator and calculate % by party
+  group_by(year, winner_candidate_inc) %>% summarise(p_n=n()*100/first(tot_n)) %>% ungroup() %>%
+   ## filter idiosyncratic issues
+  filter(p_n != 100.000000) %>%
+  ## finally, this one so we can sort the issue names
+  ## by D% of issue ad-share instead of alphabetically
+  group_by(year) %>% mutate(Dp_n = ifelse(first(winner_candidate_inc) == "democrat", first(p_n), 0))
 
-##how to indicate presidents party variable?
-partywon <- incumb %>%
-mutate(winparty_last = lag(winner_party, order_by = year),
-wincand_last = lag(winner_candidate, order_by = year)) %>%
-mutate(reelect.party = winparty_last) %>%
-filter(year > 1948) %>%
-group_by(reelect.party) %>%
-summarise(n = n()) %>%
-as.data.frame() 
+ggplot(incumb_ed, aes(x = reorder(year, Dp_n), y = p_n, fill = winner_candidate_inc)) + 
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("darkgreen", "purple1")) +
+  ylab("Incumbency Win Rate") + xlab("Year") +
+  # ggtitle("Incumbency win rate by year") +
+  coord_flip() + 
+  theme_bw() + 
+  theme(axis.title = element_text(size=10),
+        axis.text = element_text(size=5),
+        strip.text.y = element_text(size = 5)) 
 ```
+The above graph demonstrates the incumbency effect. From year 1948 to year 2020 the incumbent candidate is reelect roughly 80% of the time. Incumbents have a high chance of reelection. This graph does not account for incumbents who face no challenger, but overall it proves that incumbents have a high reelection rate. 
+
+```{r, message = FALSE, echo=FALSE}
+electionresults <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/incumb_dist_1948-2020 (3).csv")
+electionresults
+incumbency <- electionresults %>%  
+  mutate(incumb = ifelse(winner_candidate == "DemCandidate",1,0)) %>% 
+  mutate(year = year + 2) %>% 
+  select (year, st_cd_fips, incumb, DemVotesMajorPercent)
+
+lm_incumb <- lm(DemVotesMajorPercent ~ incumb, 
+              data = incumbency)
+lm_incumb
+stargazer(type = "text", lm_incumb)
+
+model <- predict(lm_incumb, incumbency, interval="prediction")
+mean(model)
+
+#mean(lm_incumb)
+
+#gdp_q <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 2/GDP_quarterly.csv")
+# Filter out data for Q6
+#gdp_q6 <- gdp_q %>%
+#  filter(quarter_cycle == 6) %>% 
+#  rename(gdp_q6 = GDPC1)
+
+# Filter out data for Q7
+#gdp_q7 <- gdp_q %>%
+  #filter(quarter_cycle == 7) %>% 
+ # rename(gdp_q7 = GDPC1)
+
+# creating gdp_q_final
+#gdp_q_final <- left_join(gdp_q7, gdp_q6, by = "year") %>% 
+ # mutate(gdp_q7_q6 = (gdp_q7 - gdp_q6) / gdp_q6 * 100) %>% # percent difference
+ # rename(gdp_percent_difference = gdp_q7_q6) %>% 
+ # select(year, gdp_percent_difference)
+
+# adding generic ballot average to turnout
+#df <-  left_join(gdp_q_final, by = "year") %>%
+#  left_join(incumbency, by = c("year", "st_cd_fips")) %>% 
+#  select(year, state, district_num, winner_party, RepVotes, DemVotes,
+  #       DemVotesMajorPercent, st_cd_fips,
+  #       average_support, gdp_percent_difference, incumb) %>%
+#  drop_na(incumb)
+
+  
+#  state_dists <- unique(incumbency$sd_pls)
+
+#models <- list()
+#r2 <- c()
+#preds <- c()
+#coeff_incumb <- c()
+
+# Loop through each district, model and predict
+#for (sd in state_dists){
+  # Filter for dataframe with just district sd
+ # temp <- incumbency %>%  filter(st_cd_fips == sd)
+  
+  # Fit linear model for dem two-party vote-share
+#  m <- lm(DemVotesMajorPercent ~ incumb, data = temp)
+  
+  # Add model to list of models
+#  models[[length(models)+1]] <- m
+  
+  # Find r^2, coeffs, and add to list
+ # r2 <- c(r2, summary(m)$adj.r.squared)
+ # coeff_incumb <- c(coeff_incumb, summary(m)$coefficients[5])
+  
+  # Make a 2022 prediction and append to list
+  #new_data <- incumbency %>%  filter(st_cd_fips == sd)
+  #preds <- c(preds, predict(m, new_data))
+#}
+
+#output <- tibble(preds)
+
+#stargazer(m, type = "text")
+
+#length(preds[preds <= 50])
+#length(preds[preds > 50])
+```
+Using the incumbency factor I predict the Democrats will win 55%
+
+```{r, message = FALSE, echo=FALSE}
+library("dplyr")
+
+
+incumb$RepCandidate <- as.character(incumb$RepCandidate)
+
+Rep_names_count2 <- subset(incumb, RepCandidate %in% c("Carl, Jerry", "Moore, Barry", "Rogers, Mike D.", "Aderholt, Robert", "Brooks, Mo", "Palmer, Gary", "Young, Don", "Gosar, Paul", "Biggs, Andy", "Schweikert, David", "Lesko, Debbie", "Crawford, Rick", "Hill, French", "Womack, Steve", "Westerman, Bruce", "LaMalfa, Doug", "Obernolte, Jay", "Valadao, David", "Nunes, Devin", "McCarthy, Kevin", "Garcia, Mike", "Kim, Young", "Calvert, Ken", "Steel, Michelle", "Issa, Darrell", "Boebert, Lauren", "Buck, Ken", "Lamborn, Doug", "Gaetz, Matt", "Dunn, Neal", "Cammack, Kat", "Rutherford, John", "Waltz, Michael", "Posey, Bill", "Webster, Daniel A.", "Bilirakis, Gus Michael", "Franklin, Scott", "Buchanan, Vern", "Steube, Greg", "Mast, Brian", "Donalds, Byron", "Diaz-Balart, Mario", "Gimenez, Carlos", "Salazar, Maria Elvira", "Carter, Earl Leroy", "Ferguson, Drew", "Scott, Austin", "Clyde, Andrew", "Hice, Jody", "Loudermilk, Barry", "Allen, Rick", "Greene, Marjorie Taylor", "Fulcher, Russell M.", 
+"Simpson, Michael K.", "Bost, Mike", "Davis, Rodney L.", "Miller, Mary", "Kinzinger, Adam", "LaHood, Darin", 
+"Walorski, Jackie","Banks, James", "Baird, James", "Spartz, Victoria", "Pence, Gregory", "Bucshon, Larry D.","Hollingsworth, Trey","Hinson, Ashley","Miller-Meeks, Mariannette","Feenstra, Randy","Mann, Tracey","LaTurner, Jake","Estes, Ron", "Comer, James R.","Guthrie, Brett","Massie, Thomas","Rogers, Harold","Barr, Andy Garland","Scalise, Steve","Higgins, Clay","Johnson, Mike","Letlow, Luke J.","Letlow, Luke J.","Graves, Garret","Harris, Andy","Bergman, Jack","Huizenga, Bill","Meijer, Peter","Moolenaar, John","Upton, Fred","Walberg,Timothy","McClain, Lisa","Hagedorn, James","Emmer, Tom","Fischbach, Michelle","Stauber, Pete","Kelly, Trent","Guest, Michael","Palazzo, Steven","Wagner, Ann","Luetkemeyer, Blaine","Hartzler, Vicky","Graves, Samuel B. Jr.","Long, Billy","Smith, Jason","Rosendale, Matt","Fortenberry, Jeff","Bacon, Don","Smith, Adrian","Amodei, Mark","Van Drew, Jeff","Smith, Christopher H.","Herrell, Yvette","Zeldin, Lee M.","Garbarino, Andrew","Malliotakis, Nicole","Stefanik, Elise","Tenney, Claudia","Reed, Thomas W. II","Katko, John M.","Jacobs, Christopher","Murphy, Greg","Foxx, Virginia Ann","Rouzer, David","Hudson, Richard","Bishop, Dan","McHenry, Patrick T.","Cawthorn, Madison","Budd, Ted","Armstrong, Kelly","Chabot, Steve","Wenstrup, Brad","Jordan, Jim","Latta, Bob","Johnson, Bill","Gibbs, Bob","Davidson, Warren","Turner, Michael R.","Balderson, Troy","Joyce, David","Stivers, Steve","Gonzalez, Anthony","Hern, Kevin","Mullin, Markwayne","Lucas, Frank D.","Cole, Tom","Bice, Stephanie","Bentz, Cliff","Fitzpatrick, Brian K.","Meuser, Dan","Perry, Scott","Smucker, Lloyd K.","Keller, Fred","Joyce, John","Reschenthaler, Guy","Thompson, Glenn Jr.","Kelly, Mike","Mace, Nancy","Wilson, Joe","Duncan, Jeff","Timmons, William","Norman, Ralph","Rice, Tom","Johnson, Dusty","Harshbarger, Diana",
+"Burchett, Tim","Fleischmann, Chuck","DesJarlais, Scott","Rose, John","Green, Mark","Kustoff, David","Gohmert, Louie","Crenshaw, Daniel","Taylor, Van","Fallon, Pat","Gooden, Lance","Wright, Ronald","Brady, Kevin","McCaul, Michael T.","Pfluger, August","Granger, Kay","Jackson, Ronny","Weber, Randy","Sessions, Pete","Arrington, Jodey","Roy, Chip","Nehls, Troy","Gonzales, Ernest Anthony II","Van Duyne, Elizabeth Ann","Williams, Roger","Burgess, Michael C.","Cloud, Michael","Carter, John","Babin, Brian","Moore, Blake David",
+"Stewart, Chris","Curtis, John","Owens, Burgess","Wittman, Robert J.","Good, Robert","Cline, Benjamin","Griffith, H. Morgan","Beutler, Jaime Herrera","Newhouse, Dan M.","Rodgers, Cathy McMorris","McKinley, David","Mooney, Alex X.","Miller, Carol","Steil, Bryan","Fitzgerald, Scott","Grothman, Glenn S.","Tiffany, Tom","Gallagher, Mike","Cheney, Elizabeth")) 
+
+
+
+x <- table(Rep_names_count2$RepCandidate)
+x<- as.data.frame(x)
+x <- subset(x, Freq != 0)
+x <- x %>% rename("RepCandidate" = "Var1")
+x$year <- 2020
+
+incumb_freq <- x %>% left_join(incumb, by = c("year", "RepCandidate")) %>% rename("DISTRICT" = "district_num") %>% rename("STATENAME" = "state")
+
+#repeating it for Dem_candidates
+incumb <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/incumb_dist_1948-2022 (2).csv")
+incumb$DemCandidate <- as.character(incumb$DemCandidate)
+
+Dem_names_count2 <- subset(incumb, DemCandidate %in% c("Sewell, Terri A.", "O'Halleran, Tom","Kirkpatrick, Ann", "Grijalva, Ra˙l M.", "Gallego, Ruben", "Stanton, Greg", "Huffman, Jared", "Garamendi, John", "Thompson, Mike", "Matsui, Doris", "Bera, Ami", "McNerney, Jerry", "Harder, Josh", "DeSaulnier, Mark", "Pelosi, Nancy", "Lee, Barbara", "Speier, Jackie", "Swalwell, Eric", "Costa, Jim", "Khanna, Ro", "Eshoo, Anna G.", "Lofgren, Zoe", "Panetta, Jimmy", "Carbajal, Salud", "Brownley, Julia", "Chu, Judy", "Schiff, Adam B.", "Cardenas, Tony","Sherman, Brad", "Napolitano, Grace Flores", "Lieu, Ted W.", "Gomez, Jimmy", "Torres, Norma", "Ruiz, Raul", "Bass, Karen", "Sanchez, Linda", "Roybal-Allard, Lucille", "Takano, Mark A.","Payne, Donald M. Jr.", "Sherrill, Mikie", "Coleman, Bonnie Watson", "Haaland, Debra", "Fernandez, Teresa Leger", "Suozzi, Thomas R.", "Rice, Kathleen M.", "Meeks, Gregory W.", "Meng, Grace", "Velazquez, Nydia", "Jeffries, Hakeem", "Clarke, Yvette D.", "Nadler, Jerrold", "Maloney, Carolyn B.", "Espaillat, Adriano", "Ocasio-Cortez, Alexandria", "Torres, Ritchie John", "Bowman, Jamaal", "Jones, Mondaire", "Maloney, Sean", "Delgado, Antonio", "Tonko, Paul D.", "Morelle, Joseph D.", "Higgins, Brian M."," Butterfield, George K.", "Ross, Deborah K.", "Price, David E.", "Manning, Kathy", "Adams, Alma S.", "Beatty, Joyce", "Kaptur, Marcy", "Fudge, Marcia L.", "Ryan, Tim", "Bonamici, Suzanne", "Blumenauer, Earl", "DeFazio, Peter A.", "Schrader, Kurt", "Boyle, Brendan F.", "Evans, Dwight", "Dean, Madeleine", "Scanlon, Mary Gay", "Houlahan, Chrissy", "Wild, Susan", "Cartwright, Matt", "Lamb, Conor", "Doyle, Mike", "Langevin, James R.", "Cicilline, David N.", "Clyburn, James E.", "Cooper, Jim", "Cohen, Stephen I.", "Fletcher, Lizzie Pannill", "Green, Al", "Gonzalez, Vicente", "Escobar, Veronica", "Jackson Lee, Sheila", "Castro, Joaquin", "Cuellar, Henry", "Garcia, Sylvia R.", "Johnson, Eddie Bernice", "Allred, Colin", "Vela, Filemon", "Veasey, Marc", "Doggett, Lloyd", "Welch, Peter", "Luria, Elaine", "Scott, Robert C.", "McEachin, A. Donald", "Spanberger, Abigail", "Beyer, Donald S. Jr.", "Wexton, Jennifer", "Connolly, Gerald E.", "DelBene, Suzan", "Larsen, Rick", "Kilmer, Derek", "Jayapal, Pramila", "Schrier, Kim", "Smith, Adam", "Strickland, Marilyn", "Pocan, Mark", "Kind, Ron", "Moore, Gwen"))
+
+
+y <- table(Dem_names_count2$DemCandidate)
+y<- as.data.frame(y)
+y <- subset(y, Freq != 0)
+y$Freq <- as.numeric(y$Freq)
+y_neg <- y %>% 
+  mutate_if(is.numeric, funs(. * -1))
+y_neg <- y_neg %>% rename("DemCandidate" = "Var1") 
+y_neg$year <- 2020
+
+
+incumb_freq_Rep <- x %>% left_join(incumb, by = c("year", "RepCandidate")) %>% rename("DISTRICT" = "district_num") %>% rename("STATENAME" = "state")
+incumb_freq_Dem <- y_neg %>% left_join(incumb, by = c("year", "DemCandidate")) %>% rename("DISTRICT" = "district_num")%>% rename("STATENAME" = "state")
+
+
+incumb_freq_Rep$DISTRICT <- as.numeric(incumb_freq_Rep$DISTRICT)
+incumb_freq_Dem$DISTRICT <- as.numeric(incumb_freq_Dem$DISTRICT)
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+incumb_freq_Rep$STATENAME <- as.character(incumb_freq_Rep$STATENAME)
+incumb_freq_Dem$STATENAME <- as.character(incumb_freq_Dem$STATENAME)
+cd114$STATENAME <- as.character(cd114$STATENAME)
+
+incumb_freq_both <- rbind(incumb_freq_Dem, incumb_freq_Rep)
+
+cd_incumb <- cd114 %>% left_join(incumb_freq_both, by=c("DISTRICT", "STATENAME")) 
+
+districts_simp2 <- rmapshaper::ms_simplify(cd_incumb, keep = 0.01)
+ggplot() + 
+  geom_sf(data=districts_simp2,aes(fill=Freq),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2(high = "red", mid = "white", low = "blue",  midpoint = 0, name = "Number of years Incumbent has held office") +
+  coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "2020 Number of years Incumbent has held office") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+
+```
+I wanted to look at the number of cycles the incumbent in each district has held office because incumbents who have held office for a long time are more likely to continue holding office. The graph above shows how many years the incumbent in each district has held office. The colors that are vibrant red and vibrant blue indicate that the incumbent has held office for many time. Meanwhile the colors that are more faded- closer to white indicate that the incumbent has held office for less years. According to incumbent voting theories, the white areas are more likely to flip during the election. Therefore, more focus should be placed on these white districts, while the more vibrant districts are likely to reelect their candidate. 
 

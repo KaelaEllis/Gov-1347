@@ -1,0 +1,257 @@
+---
+title: "Blog_Post_6"
+author: "kaela"
+date: '2022-10-15'
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(glmnet)
+library(sf)
+library(plotly)
+library(usmap)
+library(rmapshaper)
+library(blogdown)
+library(gridExtra)
+library(stargazer)
+library(lubridate)
+library(caret)
+library(leaps)
+library(ggthemes)
+library(usdata)
+library(gt)
+library(gtsummary)
+library(cowplot)
+
+incumb <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/incumb_dist_1948-2022 (2).csv")
+
+incumb
+
+incumb <- incumb %>%  mutate(incumb = ifelse(winner_candidate == "DemCandidate",1,0))%>% filter(year > 2008) %>% select(year, st_cd_fips, incumb, winner_candidate, state, district_num) %>% mutate(year = year +2) %>% select (year, st_cd_fips, incumb, state, district_num)
+
+incumb
+write.csv(incumb, "incumb2.csv")
+
+
+```
+
+
+```{r}
+turnout <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/turnout.csv")
+output <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/preds_df.csv")
+
+turnout2 <- turnout %>% rename("DISTRICT" = "district_num") %>% rename("STATENAME" = "state") %>% rename("state_dists" = "st_cd_fips") %>% filter(year == 2020) %>% select(state_dists, DISTRICT, STATENAME)
+
+output <- output %>% left_join(turnout2, by=c("state_dists"))
+
+get_congress_map <- function(cong=114) {
+  tmp_file <- tempfile()
+  tmp_dir  <- tempdir()
+  zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts114.zip",cong)
+  download.file(zp, tmp_file)
+  unzip(zipfile = tmp_file, exdir = tmp_dir)
+  fpath <- paste(tmp_dir, sprintf("districtShapes/districts114.shp",cong), sep = "/")
+  st_read(fpath)
+}
+
+cd114 <- get_congress_map(114)
+
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+cd114 <- cd114 %>% left_join(dem_results, by=c("DISTRICT", "STATENAME"))
+
+output <- output %>% 
+  mutate(preds = ifelse(preds > 100,100, preds),
+         preds = ifelse(preds < 0, 0, preds))
+
+```
+
+
+```{r}
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+output$DISTRICT <- as.numeric(output$DISTRICT)
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+output$STATENAME <- as.character(output$STATENAME)
+cd114$STATENAME <- as.character(cd114$STATENAME)
+
+cd2022 <- cd114 %>% left_join(output, by=c("STATENAME", "DISTRICT")) %>% filter(!STATENAME %in% c("Alaska","Hawaii"))
+cd2022%>% st_as_sf() %>%
+  st_transform("+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +ellps=sphere +units=m +no_defs")
+districts_simp_2022 <- rmapshaper::ms_simplify(cd2022, keep = 0.01)
+fig1 <- ggplot() + 
+  geom_sf(data=districts_simp_2022,aes(fill=preds),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2("Democratic \nVoteshare", midpoint = 50, high = "#30a2da", mid = "white", low = "#fc4f30") +
+  #coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "2022 Prediction with Turnout") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+#Insert no turnout dataset here
+no_TO <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/better_preds.csv")
+no_TO <- no_TO %>% left_join(turnout2, by=c("state_dists"))
+
+no_TO <- no_TO %>%  mutate(preds = ifelse(preds > 100,100, preds),
+         preds = ifelse(preds < 0, 0, preds))
+
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+no_TO$DISTRICT <- as.numeric(no_TO$DISTRICT)
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+no_TO$STATENAME <- as.character(no_TO$STATENAME)
+cd114$STATENAME <- as.character(cd114$STATENAME)
+
+cd2022_no_TO <- cd114 %>% left_join(no_TO, by=c("STATENAME", "DISTRICT")) %>% filter(!STATENAME %in% c("Alaska","Hawaii"))
+cd2022_no_TO%>% st_as_sf() %>%
+  st_transform("+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +ellps=sphere +units=m +no_defs")
+districts_simp_2022_no_TO <- rmapshaper::ms_simplify(cd2022_no_TO, keep = 0.01)
+fig2 <- ggplot() + 
+  geom_sf(data=districts_simp_2022_no_TO,aes(fill=preds),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2("Democratic \nVoteshare", midpoint = 50, high = "#30a2da", mid = "white", low = "#fc4f30") +
+  #coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "2022 Prediction without Turnout") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+fig1
+
+plot_grid(fig1, fig2, ncol=2)
+
+fig2
+
+comparison <- no_TO %>%  left_join(output, by=c("STATENAME", "DISTRICT")) %>% filter(!STATENAME %in% c("Alaska","Hawaii"))
+
+comparison$preds.x <- as.numeric(comparison$preds.x)
+
+comparison1 <- comparison %>% mutate(preds.x = ifelse(preds.x > 50,1,0)) %>% mutate(preds.y = ifelse(preds.y > 50,1,0))
+
+comparison1$pred.diff <- comparison1$preds.x - comparison1$preds.y
+
+cdcomp <- cd114 %>% left_join(comparison1, by=c("STATENAME", "DISTRICT")) %>% filter(!STATENAME %in% c("Alaska","Hawaii"))
+cdcomp%>% st_as_sf() %>%
+  st_transform("+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +ellps=sphere +units=m +no_defs")
+districts_simp_comp <- rmapshaper::ms_simplify(cdcomp, keep = 0.01)
+ggplot() + 
+  geom_sf(data=districts_simp_comp,aes(fill=pred.diff),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2("Flipped \n States", midpoint = 0, high = "#30a2da", mid = "white", low = "#fc4f30") +
+  #coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "States that Flipped turnout vs without turnout") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+```
+
+```{r}
+comparison1 %>%
+  filter(preds.x == 0)
+```
+
+```{r}
+#Seats that flipped 2020 to 2022
+#results from 2020 compared to results from 2022
+no_TO <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/better_preds.csv")
+turnout2 <- turnout %>% rename("DISTRICT" = "district_num") %>% rename("STATENAME" = "state") %>% rename("state_dists" = "st_cd_fips") %>% filter(year == 2020) %>% select(state_dists, DISTRICT, STATENAME)
+
+no_TO <- no_TO %>% left_join(turnout2, by=c("state_dists"))
+historical_results <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/house party vote share by district 1948-2020.csv") %>% 
+  clean_names()
+dem_results_2020 <- historical_results %>% 
+  select(race_year, state, area, dem_votes_major_percent, district_num) %>% 
+  rename("year" = "race_year") %>%  rename("DISTRICT" = "district_num") %>% rename("STATENAME" = "state") %>% filter(year == 2020) %>% distinct() %>% distinct(STATENAME,DISTRICT, .keep_all = TRUE)
+dem_results_2020
+no_TO
+dem_results_2020$DISTRICT <- as.numeric(dem_results_2020$DISTRICT)
+no_TO$DISTRICT <- as.numeric(no_TO$DISTRICT)
+dem_results_2020$DISTRICT <- as.numeric(dem_results_2020$DISTRICT)
+no_TO$STATENAME <- as.character(no_TO$STATENAME)
+dem_results_2020$STATENAME <- as.character(dem_results_2020$STATENAME)
+diff.2020.2022 <- no_TO %>% left_join(dem_results_2020, by=c("STATENAME", "DISTRICT"))
+
+diff.2020.2022 <- diff.2020.2022 %>%  mutate(preds = ifelse(preds > 50,1,0)) %>% mutate(dem_votes_major_percent = ifelse(dem_votes_major_percent > 50,1,0))
+diff.2020.2022 <- as.data.frame(diff.2020.2022)
+diff.2020.2022
+diff.2020.2022$pred.diff <- diff.2020.2022$preds - diff.2020.2022$dem_votes_major_percent
+
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+diff.2020.2022$DISTRICT <- as.numeric(diff.2020.2022$DISTRICT)
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+diff.2020.2022$STATENAME <- as.character(diff.2020.2022$STATENAME)
+cd114$STATENAME <- as.character(cd114$STATENAME)
+
+diff.2020.2022 <- cd114 %>% left_join(diff.2020.2022, by=c("STATENAME", "DISTRICT")) %>% filter(!STATENAME %in% c("Alaska","Hawaii"))
+diff.2020.2022%>% st_as_sf() %>%
+  st_transform("+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +ellps=sphere +units=m +no_defs")
+districts_simp_2022_comb <- rmapshaper::ms_simplify(diff.2020.2022, keep = 0.01)
+ggplot() + 
+  geom_sf(data=districts_simp_2022_comb,aes(fill=pred.diff),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient2("Democratic \nVoteshare", midpoint = 0, high = "#30a2da", mid = "white", low = "#fc4f30") +
+  #coord_sf(xlim = c(-124.43, -66.57), ylim = c(23, 49), expand = FALSE) +  
+  theme_void() + labs(title = "Seats flipped 2020 to 2022: Without Turnout") +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+```
+
+```{r}
+as.data.frame(diff.2020.2022 %>%
+  filter(pred.diff != 0)) %>%  mutate(diff.2020.2022 = ifelse(pred.diff == -1,"R",pred.diff), diff.2020.2022 = ifelse(pred.diff == 1,"D",diff.2020.2022)) %>% select(STATENAME, DISTRICT,  diff.2020.2022)
+```
+
+```{r}
+average <- c(221, 214)
+high <- c(224, 211)
+low<- c(215, 220)
+
+df <- as.data.frame(rbind(average, high, low))
+df <- df %>% rename("Republican" = "V1") %>%  rename("Democrat" = "V2")
+df
+ggplot(df, aes(x = Democrat, y = c(average, high, low), fill = Democrat)) + 
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("#30a2da", "#fc4f30")) +
+  ylab("Seats") + xlab("Voter Turnout") +
+  # ggtitle("Incumbency win rate by year") +
+  coord_flip() + 
+  theme_bw() + 
+  theme(axis.title = element_text(size=10),
+        axis.text = element_text(size=5),
+        strip.text.y = element_text(size = 5))
+
+df <- df %>%
+  group_by(year) %>% mutate(tot_n=n()) %>% ungroup() %>%
+  ## this one is get numerator and calculate % by party
+  group_by(year, winner_candidate_inc) %>% summarise(p_n=n()*100/first(tot_n)) %>% ungroup() %>%
+   ## filter idiosyncratic issues
+  filter(p_n != 100.000000) %>%
+  ## finally, this one so we can sort the issue names
+  ## by D% of issue ad-share instead of alphabetically
+  group_by(year) %>% mutate(Dp_n = ifelse(first(winner_candidate_inc) == "democrat", first(p_n), 0))
+
+ggplot(incumb_ed, aes(x = reorder(year, Dp_n), y = p_n, fill = winner_candidate_inc)) + 
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("darkgreen", "purple1")) +
+  ylab("Incumbency Win Rate") + xlab("Year") +
+  # ggtitle("Incumbency win rate by year") +
+  coord_flip() + 
+  theme_bw() + 
+  theme(axis.title = element_text(size=10),
+        axis.text = element_text(size=5),
+        strip.text.y = element_text(size = 5)) 
+```
+
