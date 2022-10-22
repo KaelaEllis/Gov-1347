@@ -38,7 +38,7 @@ historical_results <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/house party vo
 expert_ratings2 <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/2018_ratings_share (2).csv")
 ```
 
-```{r}
+```{r, message = FALSE, echo=FALSE}
 # Selecting columns
 avg_ratings <- expert_ratings %>% 
   select(year, state, district, avg_rating)  %>% filter(year == 2018) %>%  rename("DISTRICT" = "district") %>% rename("STATENAME" = "state") %>%  drop_na()
@@ -438,7 +438,7 @@ ad_issues %>%
 
 The above graph shows the percent of ads that each party ran that focused on an economic issue. I selected the most popular economic related issues, most of which had to do with taxes, jobs, and unemployment. The Republicans tend to focus on the economy. However in 2014, when the unemployment rate hit 2007 level, having fallen back down after the 2008 financial crisis, the Democrats ads exceeded that of Republicans. The Democrats were the clarifying candidate in 2014, and their ads reflected this. They were also able to gain seats in the house. Democrats are currently the insurgent candidate, and without data I am limited to using 2018 ad data to infer that their primary ad issue will not be the economy. 
 
-```{r}
+```{r, message = FALSE, echo=FALSE}
 electionresults <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/incumb_dist_1948-2020 (3).csv")
 gdp_q <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 2/GDP_quarterly.csv")
 
@@ -461,7 +461,11 @@ gdp_q_final <- left_join(gdp_q7, gdp_q6, by = "year") %>%
 ```
 
 
-```{r}
+```{r, message = FALSE, echo=FALSE}
+ad_freq_new <- subset(ad_freq_pretty1, ad_freq != 0) 
+  ad_freq_new <- data.frame(ad_freq_new)
+  
+
 electionresults <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/incumb_dist_1948-2020 (3).csv")
 incumbency <- electionresults %>%  
   mutate(incumb = ifelse(winner_candidate == "DemCandidate",1,0)) %>% 
@@ -472,7 +476,12 @@ lm_incumb <- lm(dem_votes_major_percent ~ incumb,
               data = incumbency)
 lm_GDP <- lm(dem_votes_major_percent ~ gdp_percent_difference, data = gdp_q_final)
 
-ad_freq_new <- ad_freq_new %>%  left_join(dem_results, by=c("DISTRICT", "STATENAME"))%>%drop_na() 
+ad_freq_new$DISTRICT<- as.character(ad_freq_new$DISTRICT)
+dem_results$DISTRICT <- as.character(dem_results$DISTRICT)
+ad_freq_new$STATENAME <- as.character(ad_freq_new$STATENAME)
+dem_results$STATENAME <- as.character(dem_results$STATENAME)
+
+ad_freq_new <- ad_freq_new %>%  left_join(dem_results, by=c("DISTRICT", "STATENAME")) %>%drop_na() 
 
 
 
@@ -480,13 +489,9 @@ lm_ads <- lm(dem_votes_major_percent ~ ad_freq,
               data = ad_freq_new)
 stargazer(type = "text", lm_ads, lm_incumb, incumbency)
 
-all <- full_join(ad_freq_new, incumbency,  by = "year")
-
-
-lm_all <- lm(dem_votes_major_percent ~  ad_freq_new + incumbency, data = all)
 
 model <- predict(lm_ads, ad_freq_new, interval="prediction")
 mean(model)
 
 ```
-My prediction including ads is Dems win 59%. However I reject the use of ads in forming my prediction because of its low R2, and the general limited ad information we have district by district. I therefore choose to return to my old prediction of Dems win 51% of the house vote.  
+My prediction including ads is Dems win 48%. However I reject the use of ads in forming my prediction because of its low R2, and the general limited ad information we have district by district. I therefore choose to return to my old prediction of Dems win 51% of the house vote.  
