@@ -22,6 +22,24 @@ library(readr)
 require(ggplot2)
 require(sf)
 library(janitor)
+library(tidyverse)
+library(janitor)
+library(glmnet)
+library(sf)
+library(plotly)
+library(usmap)
+library(rmapshaper)
+library(blogdown)
+library(gridExtra)
+library(stargazer)
+library(lubridate)
+#library(caret)
+library(leaps)
+library(ggthemes)
+#library(usdata)
+#library(gt)
+#library(gtsummary)
+library(cowplot)
 
 # load datasets
 pvstate_df   <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/incumb_dist_1948-2022 (2).csv")
@@ -442,30 +460,15 @@ The above graph shows the percent of ads that each party ran that focused on an 
 electionresults <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/incumb_dist_1948-2020 (3).csv")
 gdp_q <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 2/GDP_quarterly.csv")
 
-# Filter out data for Q6
-gdp_q6 <- gdp_q %>%
-  filter(quarter_cycle == 6) %>% 
-  rename(gdp_q6 = GDPC1)
-
-# Filter out data for Q7
-gdp_q7 <- gdp_q %>%
-  filter(quarter_cycle == 7) %>% 
-  rename(gdp_q7 = GDPC1)
-
-# creating gdp_q_final
-gdp_q_final <- left_join(gdp_q7, gdp_q6, by = "year") %>% 
-  mutate(gdp_q7_q6 = (gdp_q7 - gdp_q6) / gdp_q6 * 100) %>% # percent difference
-  rename(gdp_percent_difference = gdp_q7_q6) %>%  select(year, gdp_percent_difference) 
-
 
 ```
 
 
 ```{r, message = FALSE, echo=FALSE}
+#library(stargazer)
 ad_freq_new <- subset(ad_freq_pretty1, ad_freq != 0) 
   ad_freq_new <- data.frame(ad_freq_new)
   
-
 electionresults <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/incumb_dist_1948-2020 (3).csv")
 incumbency <- electionresults %>%  
   mutate(incumb = ifelse(winner_candidate == "DemCandidate",1,0)) %>% 
@@ -475,21 +478,16 @@ incumbency <- electionresults %>%
 lm_incumb <- lm(dem_votes_major_percent ~ incumb, 
               data = incumbency)
 
-
 ad_freq_new$DISTRICT<- as.character(ad_freq_new$DISTRICT)
 dem_results$DISTRICT <- as.character(dem_results$DISTRICT)
 ad_freq_new$STATENAME <- as.character(ad_freq_new$STATENAME)
 dem_results$STATENAME <- as.character(dem_results$STATENAME)
 
-
 ad_freq_new <- ad_freq_new %>%  left_join(dem_results, by=c("DISTRICT", "STATENAME")) %>%drop_na() 
-
-
 
 lm_ads <- lm(dem_votes_major_percent ~ ad_freq, 
               data = ad_freq_new)
-stargazer(type = "text", lm_ads, lm_incumb, incumbency)
-
+#stargazer(type = "text", lm_ads, lm_incumb, incumbency)
 
 model <- predict(lm_ads, ad_freq_new, interval="prediction")
 mean(model)
