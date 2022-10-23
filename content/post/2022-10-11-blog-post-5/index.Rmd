@@ -474,12 +474,13 @@ incumbency <- electionresults %>%
 
 lm_incumb <- lm(dem_votes_major_percent ~ incumb, 
               data = incumbency)
-lm_GDP <- lm(dem_votes_major_percent ~ gdp_percent_difference, data = gdp_q_final)
+
 
 ad_freq_new$DISTRICT<- as.character(ad_freq_new$DISTRICT)
 dem_results$DISTRICT <- as.character(dem_results$DISTRICT)
 ad_freq_new$STATENAME <- as.character(ad_freq_new$STATENAME)
 dem_results$STATENAME <- as.character(dem_results$STATENAME)
+
 
 ad_freq_new <- ad_freq_new %>%  left_join(dem_results, by=c("DISTRICT", "STATENAME")) %>%drop_na() 
 
