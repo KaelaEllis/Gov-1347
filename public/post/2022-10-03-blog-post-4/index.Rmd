@@ -9,12 +9,23 @@ slug: []
 ---
 ```{r,  message = FALSE, echo=FALSE}
 library(tidyverse)
-# required packages 
-require(tidyverse)
-require(ggplot2)
-require(sf)
 library(janitor)
+library(glmnet)
+library(sf)
+library(plotly)
 library(usmap)
+library(rmapshaper)
+library(blogdown)
+library(gridExtra)
+library(stargazer)
+library(lubridate)
+#library(caret)
+library(leaps)
+library(ggthemes)
+#library(usdata)
+#library(gt)
+#library(gtsummary)
+library(cowplot)
 
 ```
 
@@ -133,6 +144,86 @@ ggplot(incumb_ed, aes(x = reorder(year, Dp_n), y = p_n, fill = winner_candidate_
 The above graph demonstrates the incumbency effect. From year 1948 to year 2020 the incumbent candidate is reelect roughly 80% of the time. Incumbents have a high chance of reelection. This graph does not account for incumbents who face no challenger, but overall it proves that incumbents have a high reelection rate. 
 
 ```{r, message = FALSE, echo=FALSE}
+electionresults <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/incumb_dist_1948-2020 (3).csv")
+electionresults
+incumbency <- electionresults %>%  
+  mutate(incumb = ifelse(winner_candidate == "DemCandidate",1,0)) %>% 
+  mutate(year = year + 2) %>% 
+  select (year, st_cd_fips, incumb, DemVotesMajorPercent)
+
+lm_incumb <- lm(DemVotesMajorPercent ~ incumb, 
+              data = incumbency)
+lm_incumb
+stargazer(type = "text", lm_incumb)
+
+model <- predict(lm_incumb, incumbency, interval="prediction")
+mean(model)
+
+#mean(lm_incumb)
+
+#gdp_q <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 2/GDP_quarterly.csv")
+# Filter out data for Q6
+#gdp_q6 <- gdp_q %>%
+#  filter(quarter_cycle == 6) %>% 
+#  rename(gdp_q6 = GDPC1)
+
+# Filter out data for Q7
+#gdp_q7 <- gdp_q %>%
+  #filter(quarter_cycle == 7) %>% 
+ # rename(gdp_q7 = GDPC1)
+
+# creating gdp_q_final
+#gdp_q_final <- left_join(gdp_q7, gdp_q6, by = "year") %>% 
+ # mutate(gdp_q7_q6 = (gdp_q7 - gdp_q6) / gdp_q6 * 100) %>% # percent difference
+ # rename(gdp_percent_difference = gdp_q7_q6) %>% 
+ # select(year, gdp_percent_difference)
+
+# adding generic ballot average to turnout
+#df <-  left_join(gdp_q_final, by = "year") %>%
+#  left_join(incumbency, by = c("year", "st_cd_fips")) %>% 
+#  select(year, state, district_num, winner_party, RepVotes, DemVotes,
+  #       DemVotesMajorPercent, st_cd_fips,
+  #       average_support, gdp_percent_difference, incumb) %>%
+#  drop_na(incumb)
+
+  
+#  state_dists <- unique(incumbency$sd_pls)
+
+#models <- list()
+#r2 <- c()
+#preds <- c()
+#coeff_incumb <- c()
+
+# Loop through each district, model and predict
+#for (sd in state_dists){
+  # Filter for dataframe with just district sd
+ # temp <- incumbency %>%  filter(st_cd_fips == sd)
+  
+  # Fit linear model for dem two-party vote-share
+#  m <- lm(DemVotesMajorPercent ~ incumb, data = temp)
+  
+  # Add model to list of models
+#  models[[length(models)+1]] <- m
+  
+  # Find r^2, coeffs, and add to list
+ # r2 <- c(r2, summary(m)$adj.r.squared)
+ # coeff_incumb <- c(coeff_incumb, summary(m)$coefficients[5])
+  
+  # Make a 2022 prediction and append to list
+  #new_data <- incumbency %>%  filter(st_cd_fips == sd)
+  #preds <- c(preds, predict(m, new_data))
+#}
+
+#output <- tibble(preds)
+
+#stargazer(m, type = "text")
+
+#length(preds[preds <= 50])
+#length(preds[preds > 50])
+```
+Using the incumbency factor I predict the Democrats will win 55%
+
+```{r, message = FALSE, echo=FALSE}
 library("dplyr")
 
 
@@ -204,4 +295,3 @@ ggplot() +
 ```
 I wanted to look at the number of cycles the incumbent in each district has held office because incumbents who have held office for a long time are more likely to continue holding office. The graph above shows how many years the incumbent in each district has held office. The colors that are vibrant red and vibrant blue indicate that the incumbent has held office for many time. Meanwhile the colors that are more faded- closer to white indicate that the incumbent has held office for less years. According to incumbent voting theories, the white areas are more likely to flip during the election. Therefore, more focus should be placed on these white districts, while the more vibrant districts are likely to reelect their candidate. 
 
-Although some say that incorporating expert polls is "cheating", expert polls are highly accurate and most incorporate the incumbency advantage, since the districts that have long-standing incumbents are usually categorized as "safe" by experts. Therefore, I did not incorporate incumbency into my prediction. However, when I remove expert polls from my forecast, I will make an incumbency factor. My prediction remains that Republicans will receive 51.39% of the vote share
