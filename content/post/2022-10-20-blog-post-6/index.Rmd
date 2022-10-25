@@ -101,7 +101,7 @@ output$STATENAME <- as.character(output$STATENAME)
 cd114$STATENAME <- as.character(cd114$STATENAME)
 
 cd2022 <- cd114 %>% left_join(output, by=c("STATENAME", "DISTRICT")) %>% filter(!STATENAME %in% c("Alaska","Hawaii"))
-cd2022%>% st_as_sf() %>%
+cd2022 <- cd2022%>% st_as_sf() %>%
   st_transform("+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +ellps=sphere +units=m +no_defs")
 districts_simp_2022 <- rmapshaper::ms_simplify(cd2022, keep = 0.01)
 fig1 <- ggplot() + 
@@ -131,7 +131,7 @@ no_TO$STATENAME <- as.character(no_TO$STATENAME)
 cd114$STATENAME <- as.character(cd114$STATENAME)
 
 cd2022_no_TO <- cd114 %>% left_join(no_TO, by=c("STATENAME", "DISTRICT")) %>% filter(!STATENAME %in% c("Alaska","Hawaii"))
-cd2022_no_TO%>% st_as_sf() %>%
+cd2022_no_TO <- cd2022_no_TO%>% st_as_sf() %>%
   st_transform("+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +ellps=sphere +units=m +no_defs")
 districts_simp_2022_no_TO <- rmapshaper::ms_simplify(cd2022_no_TO, keep = 0.01)
 fig2 <- ggplot() + 
@@ -159,7 +159,7 @@ comparison1 <- comparison %>% mutate(preds.x = ifelse(preds.x > 50,1,0)) %>% mut
 comparison1$pred.diff <- comparison1$preds.x - comparison1$preds.y
 
 cdcomp <- cd114 %>% left_join(comparison1, by=c("STATENAME", "DISTRICT")) %>% filter(!STATENAME %in% c("Alaska","Hawaii"))
-cdcomp%>% st_as_sf() %>%
+cdcomp <- cdcomp%>% st_as_sf() %>%
   st_transform("+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +ellps=sphere +units=m +no_defs")
 districts_simp_comp <- rmapshaper::ms_simplify(cdcomp, keep = 0.01)
 ggplot() + 
@@ -213,7 +213,7 @@ diff.2020.2022$STATENAME <- as.character(diff.2020.2022$STATENAME)
 cd114$STATENAME <- as.character(cd114$STATENAME)
 
 diff.2020.2022 <- cd114 %>% left_join(diff.2020.2022, by=c("STATENAME", "DISTRICT")) %>% filter(!STATENAME %in% c("Alaska","Hawaii"))
-diff.2020.2022%>% st_as_sf() %>%
+diff.2020.2022 <- diff.2020.2022%>% st_as_sf() %>%
   st_transform("+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +ellps=sphere +units=m +no_defs")
 districts_simp_2022_comb <- rmapshaper::ms_simplify(diff.2020.2022, keep = 0.01)
 fig5 <- ggplot() + 
