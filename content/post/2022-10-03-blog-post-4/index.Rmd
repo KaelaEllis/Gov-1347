@@ -7,7 +7,7 @@ categories: []
 tags: []
 slug: []
 ---
-```{r,  message = FALSE, echo=FALSE}
+```{r,  message = FALSE, echo=FALSE, warning = FALSE}
 library(tidyverse)
 library(janitor)
 library(glmnet)
@@ -38,14 +38,14 @@ There is a widely accepted theory among forecasters called the incumbency advant
 Specific to congressional elections, incumbents who have been in office for a single term tend to lose, while incumbents who have been there for multiple terms tend to get reelected. In determining the incumbency effect on congressional elections, it may be helpful to identify the incumbents by district and determine how many sessions they have held office for. 
 
 
-```{r,  message = FALSE, echo=FALSE}
+```{r,  message = FALSE, echo=FALSE, warning = FALSE}
 expert_ratings <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/expert_rating.csv")
 historical_results <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/house party vote share by district 1948-2020.csv") %>% 
   clean_names()
 expert_ratings2 <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/2018_ratings_share (2).csv")
 ```
 
-```{r,  message = FALSE, echo=FALSE}
+```{r,  message = FALSE, echo=FALSE, warning = FALSE}
 # Selecting columns
 avg_ratings <- expert_ratings %>% 
   select(year, state, district, avg_rating)  %>% filter(year == 2018) %>%  rename("DISTRICT" = "district") %>% rename("STATENAME" = "state") %>%  drop_na()
@@ -57,7 +57,7 @@ dem_results <- historical_results %>%
 
 
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 get_congress_map <- function(cong=114) {
   tmp_file <- tempfile()
   tmp_dir  <- tempdir()
@@ -76,7 +76,7 @@ cd114 <- cd114 %>% left_join(dem_results, by=c("DISTRICT", "STATENAME"))
 
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 districts_simp <- rmapshaper::ms_simplify(cd114, keep = 0.01)
 ggplot() + 
   geom_sf(data=districts_simp,aes(fill=dem_votes_major_percent),
@@ -93,7 +93,7 @@ ggplot() +
   
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 avg_ratings$DISTRICT <- as.numeric(avg_ratings$DISTRICT)
 cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
 avg_ratings$STATENAME <- as.character(avg_ratings$STATENAME)
@@ -117,7 +117,7 @@ districts_simpexpert <- rmapshaper::ms_simplify(cd115, keep = 0.01)
 The above graph compares district level expert predictions to the actual national voteshare. Compared to the actual national voteshare, the expert predictions seem to be miscategorizing some states as safe, when in reality they are not. For example, the experts categorized California's first district as Republican safe, when in reality it was taken by the Democrats. This is also seen in California's 3rd district, in addition to other districts. Overall, experts seem to experience overconfidence in their predictions. If I choose to incorporate district level expert predictions in my final, I will use other factors to lessen the effect of expert overconfidence. 
 
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 incumb <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/incumb_dist_1948-2022 (2).csv")
 
 incumb_ed <- incumb %>%

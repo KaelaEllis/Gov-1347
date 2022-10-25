@@ -29,11 +29,11 @@ library(gtsummary)
 # Data
 
 ```{r, message = FALSE}
-turnout <- read_csv("turnout_2012_2020.csv")
-turnout22 <- read_csv("turnout_2022.csv")
-electionresults <- read_csv("incumb_dist_1948-2022.csv")
-genericballot <- read_csv("polls_df.csv")
-gdp_q <- read_csv("GDP_quarterly.csv")
+turnout <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/turnout_2012_2020.csv")
+turnout22 <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/turnout_2022.csv")
+electionresults <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/incumb_dist_1948-2020 (3).csv")
+genericballot <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 3/polls_df.csv")
+gdp_q <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 2/GDP_quarterly.csv")
 ```
 
 ```{r}

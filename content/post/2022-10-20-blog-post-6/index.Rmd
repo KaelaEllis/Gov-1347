@@ -24,7 +24,7 @@ To calculate the economic factor, I used quarter 6 to 7 difference for GDP. Agai
 For incumbency, I calculated whether or not the Democratic party was the incumbent. I have discussed this decision in past blog iterations, but the general thought here was that there is an incumbency advantage, and to calculate its affect on the Democratic vote share I code for incumbency in a 0:1 form. 
 
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 library(tidyverse)
 library(janitor)
 library(glmnet)
@@ -46,7 +46,7 @@ library(cowplot)
 
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 incumb <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/incumb_dist_1948-2022 (2).csv")
 
 historical_results <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/house party vote share by district 1948-2020.csv") %>% 
@@ -58,7 +58,7 @@ incumb <- incumb %>%  mutate(incumb = ifelse(winner_candidate == "DemCandidate",
 
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 turnout <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/turnout.csv")
 output <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/preds_df.csv")
 
@@ -93,7 +93,7 @@ output <- output %>%
 
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
 output$DISTRICT <- as.numeric(output$DISTRICT)
 cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
@@ -177,12 +177,12 @@ ggplot() +
 ```
 With the incorporation of incumbency into my model, I saw 36 states flip. So turnout had an affect on my predictions. With the turnout variable, I predict that Democrats will receive 220 seats. 
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 #comparison1 %>%
  # filter(preds.x == 0)
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 #Seats that flipped 2020 to 2022
 #results from 2020 compared to results from 2022
 no_TO <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/better_preds.csv")
@@ -231,12 +231,12 @@ fig5 <- ggplot() +
 
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 #as.data.frame(diff.2020.2022 %>%
  # filter(pred.diff != 0)) %>%  mutate(diff.2020.2022 = ifelse(pred.diff == -1,"R",pred.diff), diff.2020.2022 = ifelse(pred.diff == 1,"D",diff.2020.2022)) %>% select(STATENAME, DISTRICT,  diff.2020.2022)
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 #average <- c(221, 214)
 #high <- c(224, 211)
 #low<- c(215, 220)
@@ -278,14 +278,14 @@ fig5 <- ggplot() +
       #  strip.text.y = element_text(size = 5)) 
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 cvap <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/cvap_district_2012-2020_clean.csv")
 electionresults <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/incumb_dist_1948-2020 (3).csv")
 genericballot <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 3/polls_df.csv")
 gdp_q <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 2/GDP_quarterly.csv")
 incumbency <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/incumb.csv")
 ```
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 # renaming geoid to st_cd_fips for left join
 cvap <- cvap %>% 
   rename(st_cd_fips = geoid) 
@@ -317,7 +317,7 @@ turnout <- left_join(turnout, polls_d, by = "year") %>%
          DemVotesMajorPercent, st_cd_fips, cvap, turnout, average_support)
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 # Create quarter change data and join all together with popular vote
 
 # Filter out data for Q6
@@ -348,7 +348,7 @@ turnout <- left_join(turnout, incumbency, by = c("year", "st_cd_fips")) %>%
          average_support, gdp_percent_difference, incumb)
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 # creating 2022 dataframe
 # first, add the average voter turnout in district from 2012-2020
 turnout_2022 <- turnout %>% 
@@ -379,7 +379,7 @@ turnout_2022 <- left_join(turnout_2022, incumbency_2022, by = "st_cd_fips") %>%
 write.csv(turnout_2022, "turnout_2022.csv")
 ``` 
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 models <- list()
 r2 <- c()
 preds <- c()
@@ -410,7 +410,7 @@ turnout_2022$new_turnout=preds
 
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 # Load libraries
 library(tidyverse)
 library(janitor)
@@ -434,7 +434,7 @@ library(cowplot)
 
 # Data
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 turnout <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/turnout_2012_2020.csv")
 turnout22 <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/turnout_2022.csv")
 electionresults <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/incumb_dist_1948-2020 (3).csv")
@@ -442,7 +442,7 @@ genericballot <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 3/polls_df.csv")
 gdp_q <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 2/GDP_quarterly.csv")
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 genericballot <- genericballot %>% 
   mutate(poll_data = as.Date(genericballot$poll_date, format = "%m/%d/%Y")) %>%
   filter(days_until_election <= 52) %>% 
@@ -485,7 +485,7 @@ df <- left_join(electionresults, genericballot, by = "year") %>%
 state_dists <- unique(turnout$st_cd_fips)
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 turnout14 <- turnout %>%
   filter(year == 2014) %>%
   select(year, turnout, st_cd_fips) %>%
@@ -506,7 +506,7 @@ turnout22 <- left_join(turnout22, turnout22_fixed, by = "st_cd_fips") %>%
 
 # Model with Turnout
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 # Instantiate lists
 models <- list()
 r2 <- c()
@@ -549,39 +549,39 @@ for (sd in state_dists){
 output <- tibble(state_dists, preds, preds_high, preds_low, r2, coeff_gdp, coeff_incumb, coeff_support, coeff_turnout)
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 state_dists[435]
 ```
 
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 stargazer(m, type = "text")
 ```
 
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 #tbl_regression(m)
 ```
 
 
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 preds_df <- tibble(state_dists, preds, preds_high, preds_low)
 #write.csv(preds_df, "preds_df.csv")
 ```
 
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 length(preds[preds <= 50])
 length(preds[preds > 50])
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 length(preds[preds_high <= 50])
 length(preds[preds_high > 50])
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 length(preds[preds_low <= 50])
 length(preds[preds_low > 50])
 ```
@@ -597,7 +597,7 @@ length(preds[preds_low > 50])
 #  ylim(0,50)
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 figmid <- ggplot(output %>% mutate(preds = ifelse(preds > 100, 100, preds),
                                         preds = ifelse(preds < 0, 0, preds)), 
        aes(x = preds)) +
@@ -639,7 +639,7 @@ plot_grid(fighigh, figmid, figlow, ncol=3)
 ```
 I then calculated how a change in the level of turnout would change the election results. I did the most extreme turnout change of 8%, since Enos and Fowler found that campaigns have the potential to effect turnout by 8 percentage points. I found that low turnout benefits Democrats, as they win the house majority with 220 seats. Then, with average turnout, Republicans take the house majority with 221 seats. Finally, with high turnout, Republicans have house majority with 224 seats. 
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 #output_stacked <- output %>% 
  # pivot_longer(cols = c(preds, preds_high, preds_low), names_to = "preds") %>%
 #  mutate(value = ifelse(value > 100, 100, value), 
@@ -651,7 +651,7 @@ I then calculated how a change in the level of turnout would change the election
 
 
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 ggplot(output, aes(x = r2)) +
   geom_histogram(bins = 30, color = "white") +
   theme_few() +
@@ -660,10 +660,10 @@ ggplot(output, aes(x = r2)) +
        x = "R-Squared",
        y = "Count")
 ```
-I then graphed the R2 values of the model for each state. Most of the values were close to 1, indicating that this is a decent model. This model shows the R2 for the forecast which includes all the variables. However, when I isolate R2 of turnout it is 0.089, which is not a statistically significant R2 value. Therefore, in later iterations of my model I will likely will remove turnout from the model. 
+I then graphed the R2 values of the model for each state. Most of the values were close to 1, indicating that this is a decent model. This model shows the R2 for the forecast which includes all the variables. However, when I isolate R2 of turnout it is 0.089, which is not a statistically significant R2 value. Therefore, in later iterations of my model I likely will remove turnout from the model. 
 
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 p1 <- ggplot(output, aes(x = coeff_gdp)) +
   geom_histogram(bins = 30) + 
   theme_few() +
@@ -682,7 +682,7 @@ p3 <- ggplot(output, aes(x = coeff_turnout)) +
 #grid.arrange(p1, p2, p3)
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 p1 <- ggplot(output, aes(x = coeff_gdp)) +
   geom_histogram(bins = 30, color = "white") + xlim(-2.5, 2.5) + 
   geom_vline(xintercept = median(output$coeff_gdp, na.rm = TRUE),
@@ -722,14 +722,12 @@ p4 <- ggplot(output, aes(x = coeff_incumb)) +
 #grid.arrange(p1, p2)
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 #p3
 ```
 
 
-# Models v2
-
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 models <- list()
 r2 <- c()
 preds <- c()
@@ -762,18 +760,18 @@ for (sd in state_dists){
 }
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 #stargazer(m, type = "text")
 ```
 
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 better_preds <- tibble(state_dists, preds)
 output_v2 <- tibble(r2, preds, coeff_support, coeff_gdp, coeff_incumb)
 #write.csv(better_preds, "better_preds.csv")
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 fig10 <- ggplot(output_v2, aes(x = r2)) +
   geom_histogram(bins = 30, color = "white") +
   theme_few() +
@@ -783,7 +781,7 @@ fig10 <- ggplot(output_v2, aes(x = r2)) +
        y = "Count")
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 fig20<- ggplot(output_v2 %>% mutate(preds = ifelse(preds > 100, 100, preds),
                                         preds = ifelse(preds < 0, 0, preds)), 
        aes(x = preds)) +
@@ -797,7 +795,7 @@ fig20<- ggplot(output_v2 %>% mutate(preds = ifelse(preds > 100, 100, preds),
   ylim(0,50)
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 #p1 <- ggplot(output_v2, aes(x = coeff_gdp)) +
  # geom_histogram(bins = 30, color = "white")
   #geom_vline(xintercept = median(output_v2$coeff_gdp, na.rm = TRUE),
@@ -828,12 +826,12 @@ fig20<- ggplot(output_v2 %>% mutate(preds = ifelse(preds > 100, 100, preds),
 #grid.arrange(p1, p2, p3)
 ```
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 #p3
 ```
 
 
-```{r, message = FALSE, echo=FALSE}
+```{r, message = FALSE, echo=FALSE, warning = FALSE}
 #summary(m)
 ```
 
