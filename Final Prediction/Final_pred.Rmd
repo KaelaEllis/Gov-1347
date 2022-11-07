@@ -1,0 +1,237 @@
+---
+title: "Final_Prediction"
+author: "kaela"
+date: '2022-11-06'
+output: html_document
+---
+
+Some factors that I want to look at in my final prediction is presidential approval rating. 
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(glmnet)
+library(sf)
+library(plotly)
+library(usmap)
+library(rmapshaper)
+library(blogdown)
+library(gridExtra)
+library(stargazer)
+library(lubridate)
+library(dplyr)
+#library(caret)
+library(leaps)
+library(ggthemes)
+#library(usdata)
+#library(gt)
+#library(gtsummary)
+library(cowplot)
+```
+
+```{r}
+#read dataframes
+approval_rating_df <- read_csv("~/Desktop/Gov1347/Gov-1347/Final Prediction/Presidential_Approval_Rating_Midterms - Sheet1.csv")
+approval_rating_df
+#Graph of approval rating vs voteshare percent
+approval_rating_df <- approval_rating_df %>% drop_na()
+approval_rating_df %>%
+  ggplot(aes(x=Approval_Rating, y=Vote_Share,
+             label=Year)) + 
+    geom_text(size = 4) +
+    geom_smooth(method="lm", formula = y ~ x) +
+    geom_hline(yintercept=50, lty=2) +
+    geom_vline(xintercept=0.01, lty=2) + # median
+    xlab("Approval Rating") +
+    ylab("Incumbent party Vote Share") +
+    theme_bw() +
+    ggtitle("Figure 1: Approval Rating vs Incumbent Vote Share") +
+  theme(axis.text = element_text(size = 12),
+          axis.title = element_text(size = 12),
+          plot.title = element_text(size = 12))
+
+approval_rating_df %>%
+  ggplot(aes(x=consumer.sentiment.diff, y=Vote_Share,
+             label=Year)) + 
+    geom_text(size = 4) +
+    geom_smooth(method="lm", formula = y ~ x) +
+    geom_hline(yintercept=50, lty=2) +
+    geom_vline(xintercept=0.01, lty=2) + # median
+    xlab("Change in Consumer Sentiment") +
+    ylab("Incumbent party Vote Share") +
+    theme_bw() +
+    ggtitle("Figure 2: Consumer Sentiment vs Incumbent Vote Share") +
+  theme(axis.text = element_text(size = 12),
+          axis.title = element_text(size = 12),
+          plot.title = element_text(size = 12))
+
+approval_rating_df %>%
+  ggplot(aes(x=consumer.sentiment, y=Vote_Share,
+             label=Year)) + 
+    geom_text(size = 4) +
+    geom_smooth(method="lm", formula = y ~ x) +
+    geom_hline(yintercept=50, lty=2) +
+    geom_vline(xintercept=0.01, lty=2) + # median
+    xlab("Change in Consumer Sentiment") +
+    ylab("Incumbent party Vote Share") +
+    theme_bw() +
+    ggtitle("Figure 2: Consumer Sentiment vs Incumbent Vote Share") +
+  theme(axis.text = element_text(size = 12),
+          axis.title = element_text(size = 12),
+          plot.title = element_text(size = 12))
+
+
+```
+
+```{r}
+#stargazer approval rating 
+
+library(stargazer)
+lm_ARr <- lm(Vote_Share ~ Approval_Rating + Upward, data = approval_rating_df)
+lm_CSr <- lm(Vote_Share ~ consumer.sentiment + upward.cons, data = approval_rating_df)
+lm_CS_wo_upward <- lm(Vote_Share ~ consumer.sentiment, data = approval_rating_df)
+lm_ARr_CSr <- lm(Vote_Share ~ Approval_Rating + Upward + consumer.sentiment + upward.cons, data = approval_rating_df)
+stargazer(lm_ARr, lm_CSr, lm_CS_wo_upward, lm_ARr_CSr, title = "Results", type = "text", column.labels = c("AR", "CS+trend", "CS", "AR+CS+trend"), covariate.labels = c("Approval Rating", "Approval Rating Trend", "Consumer Rating", "Consumer Rating Trend"))
+
+data.2022 <- read_csv("~/Desktop/Gov1347/Gov-1347/Final Prediction/Presidential_approval_rating_2022 - Sheet1.csv")
+
+model <- predict(lm_ARr, data.2022, interval="prediction")
+mean(model)
+
+#upward variable factors in my interpretation of the trend if the approval rating was increasing or decreasing
+
+#with my approval rating, with a factor for president's with an upward trend, predict that Dems will have 47.68% of voteshare 
+```
+```{r}
+#polls pls
+polldata <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 3/GenericPolls1942_2020.csv")
+popvote_df <- read.csv("~/Desktop/Gov1347/Gov-1347/Week 2/house_popvote_seats.csv") 
+popvote <- read.csv("~/Desktop/Gov1347/Gov-1347/Week 1/house pop vote 1948-2020.csv")
+
+
+
+library(MASS)
+
+polldata$DUE.weight <- (365 - polldata$days_until_election)
+
+poll <- polldata %>% 
+  group_by(year) %>% 
+  filter(DUE.weight > 0)
+
+poll <- poll %>% filter(days_until_election < 52)
+
+
+poll$dem.2.party.poll <- (poll$dem) / (poll$rep + poll$dem) 
+poll$rep.2.party.poll <- (poll$rep) / (poll$rep + poll$dem) 
+
+#poll <- left_join(poll, popvote, by = 'year')
+
+
+incumb_party <- subset(approval_rating_df, select=c('Year', 'Party'))
+incumb_party <- incumb_party %>% rename("year" = "Year")
+
+
+poll$Party <- ifelse(poll$year == c("1954", "1958", "1970", "1974", "1982", "1986", "1990", "2002", "2006", "2018"),  "R", "D")
+
+
+#poll <- poll %>% left_join(incumb_party, poll, by = 'year')
+
+#create a poll prediction for incumb party
+poll$incumb_poll <- ifelse(poll$Party == "D", as.character(poll$dem.2.party.poll), as.character(poll$rep.2.party.poll))
+
+poll.ed <- subset(poll, select=c('year', 'incumb_poll', 'DUE.weight'))
+
+poll.ed <- poll.ed %>% rename("Year" = "year")
+
+all <- poll.ed %>% left_join(approval_rating_df, poll.ed, by = 'Year')
+
+
+#lm_polls_DUE_weight_incumb <- rlm(Vote_Share ~ incumb_poll, data = all, weights = DUE.weight, maxit=500)
+
+#need it to be weighted so subtract it from 0.5 or else the numbers with a larger difference would have a larger weight
+#poll$diff <- 0.5 - (poll$dem.2.party.poll - poll$D.popular_vote_pct)
+
+#lm_polls_DUE_weight <- rlm (D.popular_vote_pct ~ dem.2.party.poll, data = poll, weights = DUE.weight)
+ 
+#stargazer(lm_polls_DUE_weight,title = "Results", type = "text", column.labels = c("polls"), covariate.labels = c("Polls"))
+
+#model2 <- predict(lm_polls_DUE_weight, poll, interval="prediction")
+#mean(model2)
+
+
+#ignored poll quality and partisan bias because of galton
+```
+
+```{r}
+stargazer(lm_polls_DUE_weight, lm_ARr, title = "Results", type = "text", column.labels = c("Polls, AR"), covariate.labels = c("Polls, Apporval Rating"))
+```
+
+```{r}
+all$incumb_poll <- as.numeric(all$incumb_poll)
+#lm_polls_DUE_weight_incumb <- rlm(Vote_Share ~ incumb_poll, data = all, weights = DUE.weight, maxit=200)
+lm_incumb <- lm(Vote_Share ~ Incumbent, data = approval_rating_df)
+lm_polls <- lm(Vote_Share ~ incumb_poll, data = all)
+lm_all <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + Upward + upward.cons + incumb_poll + Incumbent, data = all)
+lm_ARr <- lm(Vote_Share ~ Approval_Rating + Upward, data = all)
+lm_CSr <- lm(Vote_Share ~ consumer.sentiment + upward.cons, data = all)
+lm_CS_wo_upward <- lm(Vote_Share ~ consumer.sentiment, data = all)
+library(stargazer)
+stargazer(lm_ARr, lm_CSr, lm_polls, lm_incumb, lm_all, title = "Results", type = "text", 
+          column.labels = c("ApprovalRating", "ConsumerSentiment","Polls", "Incumbency", "All"), 
+          covariate.labels = c("Approval Rating", "Approval Rating Trend", "Consumer Rating", "Consumer Rating Trend", "Polls", "Incumbency"))
+
+```
+```{r}
+#incumbency boost; this will be how many incumbent candidates each party has 
+incumb <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/incumb_dist_1948-2022 (2).csv")
+incumb
+incumb_ed <- incumb %>%
+  group_by(year) %>% mutate(tot_n=n()) %>% ungroup() %>%
+  ## this one is get numerator and calculate % by party
+  group_by(year, winner_candidate_inc) %>% summarise(p_n=n()*100/first(tot_n)) %>% ungroup() %>%
+   ## filter idiosyncratic issues
+  filter(p_n != 100.000000) %>%
+  ## finally, this one so we can sort the issue names
+  ## by D% of issue ad-share instead of alphabetically
+  group_by(year) %>% mutate(Dp_n = ifelse(first(winner_candidate_inc) == "democrat", first(p_n), 0))
+
+incumb$year <- as.numeric(incumb$year)
+incumb.1950 <- incumb %>% filter (year == "1950")
+#length(which(incumb.1950$DemStatus=="Incumbent"))
+#length(which(incumb.1950$RepStatus=="Incumbent"))
+
+incumb.2022 <-read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/incumb.csv")
+incumb.2022 <- incumb.2022 %>% filter (year == "2022")
+#length(which(incumb.2022$incumb==1))
+
+ggplot(incumb_ed, aes(x = reorder(year, Dp_n), y = p_n, fill = winner_candidate_inc)) + 
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("darkgreen", "purple1")) +
+  ylab("Incumbency Win Rate") + xlab("Year") +
+  # ggtitle("Incumbency win rate by year") +
+  coord_flip() + 
+  theme_bw() + 
+  theme(axis.title = element_text(size=10),
+        axis.text = element_text(size=5),
+        strip.text.y = element_text(size = 5)) 
+```
+
+
+```{r}
+#clean 2022 polls
+polls.2022 <- read.csv("~/Desktop/Gov1347/Gov-1347/Final Prediction/generic_ballot_polls.csv")
+#polls.2022 <- polls.2022 %>% filter(end_date == c("10/1/22", "10/2/22", "10/3/22", "10/4/22", "10/5/22", "10/6/22", "10/7/22", "10/8/22", "10/9/22", "10/10/22", "10/11/22", "10/12/22", "10/13/22", "10/14/22", "10/15/22", "10/16/22", "10/17/22", "10/18/22", "10/19/22", "10/20/22", "10/21/22", "10/22/22", "10/23/22", "10/24/22", "10/25/22", "10/26/22", "10/27/22", "10/28/22", "10/29/22", "10/30/22", "10/31/22", "11/1/22", "11/2/22", "11/3/22", "11/4/22", "11/5/22", "11/6/22", "11/7/22", "11/8/22"))
+polls.2022$Year <- 2022
+polls.2022 <- subset(polls.2022, select=c("Year", "dem"))
+polls.2022 <- polls.2022 %>% rename("incumb_poll" = "dem")
+
+data.20 <- merge(data.2022,polls.2022, by = 'Year') 
+
+data.20$incumb_poll <- data.20$incumb_poll * 0.01
+
+model <- predict(lm_all, data.20, interval="prediction")
+mean(model)
+```
+
+
+

@@ -139,7 +139,7 @@ ggplot(incumb_ed, aes(x = reorder(year, Dp_n), y = p_n, fill = winner_candidate_
   theme_bw() + 
   theme(axis.title = element_text(size=10),
         axis.text = element_text(size=5),
-        strip.text.y = element_text(size = 5)) 
+        strip.text.y = element_text(size = 5))  
 ```
 The above graph demonstrates the incumbency effect. From year 1948 to year 2020 the incumbent candidate is reelect roughly 80% of the time. Incumbents have a high chance of reelection. This graph does not account for incumbents who face no challenger, but overall it proves that incumbents have a high reelection rate. 
 
