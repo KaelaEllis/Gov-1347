@@ -9,275 +9,66 @@ tags: []
 
 
 
-<pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
-## ✔ ggplot2 3.3.6      ✔ purrr   0.3.4 
-## ✔ tibble  3.1.8      ✔ dplyr   1.0.10
-## ✔ tidyr   1.2.1      ✔ stringr 1.4.0 
-## ✔ readr   2.1.2      ✔ forcats 0.5.2 
-## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()</code></pre>
-<pre class="r"><code>library(janitor)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;janitor&#39;
-## 
-## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     chisq.test, fisher.test</code></pre>
-<pre class="r"><code>library(glmnet)</code></pre>
-<pre><code>## Loading required package: Matrix
-## 
-## Attaching package: &#39;Matrix&#39;
-## 
-## The following objects are masked from &#39;package:tidyr&#39;:
-## 
-##     expand, pack, unpack
-## 
-## Loaded glmnet 4.1-4</code></pre>
-<pre class="r"><code>library(sf)</code></pre>
-<pre><code>## Linking to GEOS 3.10.2, GDAL 3.4.2, PROJ 8.2.1; sf_use_s2() is TRUE</code></pre>
-<pre class="r"><code>library(plotly)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;plotly&#39;
-## 
-## The following object is masked from &#39;package:ggplot2&#39;:
-## 
-##     last_plot
-## 
-## The following object is masked from &#39;package:stats&#39;:
-## 
-##     filter
-## 
-## The following object is masked from &#39;package:graphics&#39;:
-## 
-##     layout</code></pre>
-<pre class="r"><code>library(usmap)
-library(rmapshaper)</code></pre>
-<pre><code>## Registered S3 method overwritten by &#39;geojsonlint&#39;:
-##   method         from 
-##   print.location dplyr</code></pre>
-<pre class="r"><code>library(blogdown)
-library(gridExtra)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;gridExtra&#39;
-## 
-## The following object is masked from &#39;package:dplyr&#39;:
-## 
-##     combine</code></pre>
-<pre class="r"><code>library(stargazer)</code></pre>
-<pre><code>## 
-## Please cite as: 
-## 
-##  Hlavac, Marek (2022). stargazer: Well-Formatted Regression and Summary Statistics Tables.
-##  R package version 5.2.3. https://CRAN.R-project.org/package=stargazer</code></pre>
-<pre class="r"><code>library(lubridate)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;lubridate&#39;
-## 
-## The following objects are masked from &#39;package:base&#39;:
-## 
-##     date, intersect, setdiff, union</code></pre>
-<pre class="r"><code>library(dplyr)
-#library(caret)
-library(leaps)
-library(ggthemes)
-#library(usdata)
-#library(gt)
-#library(gtsummary)
-library(cowplot)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;cowplot&#39;
-## 
-## The following object is masked from &#39;package:ggthemes&#39;:
-## 
-##     theme_map
-## 
-## The following object is masked from &#39;package:lubridate&#39;:
-## 
-##     stamp</code></pre>
-<pre class="r"><code>approval_rating_df &lt;- read_csv(&quot;~/Desktop/Gov1347/Gov-1347/Final Prediction/Presidential_Approval_Rating_Midterms - Sheet1.csv&quot;)</code></pre>
-<pre><code>## Rows: 19 Columns: 11
-## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (2): President, Party
-## dbl (9): Year, Approval_Rating, Upward, Seats, Vote_Share, consumer.sentimen...
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>#stargazer approval rating 
-
-library(stargazer)
-lm_ARr &lt;- lm(Vote_Share ~ Approval_Rating + Upward, data = approval_rating_df)
-lm_CSr &lt;- lm(Vote_Share ~ consumer.sentiment + upward.cons, data = approval_rating_df)
-lm_CS_wo_upward &lt;- lm(Vote_Share ~ consumer.sentiment, data = approval_rating_df)
-lm_ARr_CSr &lt;- lm(Vote_Share ~ Approval_Rating + Upward + consumer.sentiment + upward.cons, data = approval_rating_df)
-stargazer(lm_ARr, lm_CSr, lm_CS_wo_upward, lm_ARr_CSr, title = &quot;Results&quot;, type = &quot;text&quot;, column.labels = c(&quot;AR&quot;, &quot;CS+trend&quot;, &quot;CS&quot;, &quot;AR+CS+trend&quot;), covariate.labels = c(&quot;Approval Rating&quot;, &quot;Approval Rating Trend&quot;, &quot;Consumer Rating&quot;, &quot;Consumer Rating Trend&quot;))</code></pre>
+<p>Welcome to my 2022 Midterm blog series. I’m Kaela Ellis, a junior at Harvard College studying Government. This semester I am taking Gov 1347: Election Analytics taught by Professor Ryan Enos, which has led to the creation of this blog. The goal of this blog series is to predict the 2022 Midterm election. I have updated my model with new variables each week. This has led me to a final prediction, which I will detail in this post.</p>
+<p>##Model Formula
+After testing many different models, I decided to use four variables in predicting the election: presidential approval rating, consumer sentiment, generic ballot, and incumbency. I predicted the incumbent party vote share, based on how the incumbent party vote share for midterm years 1954 through 2018 interacted with those four variables. Here is an outline of how I calculated my variables:</p>
+<p>Presidential Approval Rating: Using Gallup, I took the incumbent party’s presidential approval rating for the October before the midterm election. For example, I determined the 2018 approval rating by taking Trump’s approval rating from October, which was 43%.</p>
+<p>Consumer Sentiment: Using the University of Michigan’s consumer sentiment data, I took the consumer sentiment for the October before the midterm election.</p>
+<p>Generic Ballot: Using the generic ballot data provided in class, I took the polls of the incumbent party as a percentage. So, when Republicans were the incumbent in 1954, I entered the expressed support for the Republican party as a percentage. Then when Democrats were the incumbent in 1962, I entered the expressed support for the Democratic party as a percentage. I filtered for polls that occurred 52 days before the election.</p>
+<p>Incumbency: Using the house incumbency data provided in class, I took the sum of incumbent house candidates the president’s incumbent party had each midterm election.
+With these variables I made the following equation for predicting the election:</p>
+<p>IncumbentVoteShare = β0 + β1ApprovalRating + β3ConsumerSentiment + β5GenericBallot + β6Incumbency</p>
+<p>##Justification</p>
+<p>Rather than arbitrarily choosing to predict the Dem vote share or the Rep vote share, my model predicts the Dem vote share because they are the incumbent party. The decision to base my model on how the fundamentals affect the incumbent party vote share was largely informed by retrospective voting theory. In “Democracy for Realists”, Achen and Bartels explain how voters use elections to hold incumbents accountable. Under the sanctioning model, voter welfare depends on the effort expended by the incumbent. So, if voters’ welfare decreases, voters punish the incumbent party by not reelecting them. Fundamentals can be used to assess changes in voter welfare. Thus, I based my model on how fundamentals, such as consumer sentiment, relate to the incumbent party. I also chose to only look at midterm elections because the factors that affect the vote outcome in midterm years are different and weighted differently than in election years.</p>
+<p>I decided to incorporate the presidential approval rating into my model per the advice of guest speakers, particularly Lynn Vavreck. Incorporating presidential approval ratings into my model also supports my retrospective voting approach. If presidents have a higher presidential approval rating, their party will be rewarded in the house.</p>
+<p>I chose consumer sentiment as my economic variable because consumer sentiment is how consumers view the economy. It is based on five questions: three ask for people’s measure of their current financial circumstances, and two measure their expectations for the future. Therefore, it factors in all different types of economic indicators, as consumers naturally factor in things like GDP, RDI, and unemployment into their outlook of the economy. Since consumer sentiment is a measure of how voters view the economy, it should correlate more directly with the vote share than other economic indicators. In Lynn Vavreck’s “The Electoral Landscape of 2016”, she explains how consumer sentiment is a good indicator for predicting elections.</p>
+<p>I incorporated generic ballot polls because they reflect voters’ support for each party, and thus indicate who they are likely to vote for. I decided to incorporate the most recent polls, which were those up 52 days out because recent current support for each party is more likely to predict the election.</p>
+<p>My last variable was an incumbency variable. In “Incumbency Advantage in US Presidential Elections: the historical record”, David Mayhew explains why individual candidates experience the incumbency advantage – that is individual incumbents are more likely to be reelected. While I was not doing a district-level prediction, I still wanted to incorporate this incumbency advantage. So, I calculated how the number of incumbent candidates running in each midterm election correlated with the national vote share of that party. Since incumbents are more likely to be reelected, this allowed me to incorporate the incumbency advantage that individual candidates experience.</p>
 <pre><code>## 
 ## Results
-## =================================================================================================
-##                                                   Dependent variable:                            
-##                       ---------------------------------------------------------------------------
-##                                                       Vote_Share                                 
-##                               AR              CS+trend              CS            AR+CS+trend    
-##                              (1)                (2)                (3)                (4)        
-## -------------------------------------------------------------------------------------------------
-## Approval Rating             0.002                                                    0.007       
-##                            (0.092)                                                  (0.100)      
-##                                                                                                  
-## Approval Rating Trend       1.173                                                    -0.651      
-##                            (2.166)                                                  (2.684)      
-##                                                                                                  
-## Consumer Rating                                0.096              0.040              0.109       
-##                                               (0.082)            (0.077)            (0.104)      
-##                                                                                                  
-## Consumer Rating Trend                          -3.028                                -3.278      
-##                                               (1.954)                               (2.411)      
-##                                                                                                  
-## Constant                  47.611***          41.244***          44.535***          40.052***     
-##                            (4.821)            (6.569)            (6.501)            (9.512)      
-##                                                                                                  
-## -------------------------------------------------------------------------------------------------
-## Observations                  18                 17                 17                 17        
-## R2                          0.020              0.161              0.017              0.166       
-## Adjusted R2                 -0.111             0.042              -0.048             -0.112      
-## Residual Std. Error    3.804 (df = 15)    3.604 (df = 14)    3.769 (df = 15)    3.883 (df = 12)  
-## F Statistic           0.149 (df = 2; 15) 1.346 (df = 2; 14) 0.265 (df = 1; 15) 0.596 (df = 4; 12)
-## =================================================================================================
-## Note:                                                                 *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
-<pre class="r"><code>data.2022 &lt;- read_csv(&quot;~/Desktop/Gov1347/Gov-1347/Final Prediction/Presidential_approval_rating_2022 - Sheet1.csv&quot;)</code></pre>
-<pre><code>## Rows: 1 Columns: 8
-## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (2): President, Party
-## dbl (6): Year, Approval_Rating, Upward, consumer.sentiment, upward.cons, Inc...
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>model &lt;- predict(lm_ARr, data.2022, interval=&quot;prediction&quot;)
-mean(model)</code></pre>
-<pre><code>## [1] 47.68857</code></pre>
-<pre class="r"><code>#polls pls
-polldata &lt;- read_csv(&quot;~/Desktop/Gov1347/Gov-1347/Week 3/GenericPolls1942_2020.csv&quot;)</code></pre>
-<pre><code>## Rows: 2707 Columns: 11
-## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (2): pollster, type
-## dbl (9): sample_size, dem, rep, bmonth, bday, year, emonth, eday, days_until...
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>popvote_df &lt;- read.csv(&quot;~/Desktop/Gov1347/Gov-1347/Week 2/house_popvote_seats.csv&quot;) 
-popvote &lt;- read.csv(&quot;~/Desktop/Gov1347/Gov-1347/Week 1/house pop vote 1948-2020.csv&quot;)
-
-
-
-library(MASS)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;MASS&#39;
-## 
-## The following object is masked from &#39;package:plotly&#39;:
-## 
-##     select
-## 
-## The following object is masked from &#39;package:dplyr&#39;:
-## 
-##     select</code></pre>
-<pre class="r"><code>polldata$DUE.weight &lt;- (365 - polldata$days_until_election)
-
-poll &lt;- polldata %&gt;% 
-  group_by(year) %&gt;% 
-  filter(DUE.weight &gt; 0)
-
-poll &lt;- poll %&gt;% filter(days_until_election &lt; 52)
-
-
-poll$dem.2.party.poll &lt;- (poll$dem) / (poll$rep + poll$dem) 
-poll$rep.2.party.poll &lt;- (poll$rep) / (poll$rep + poll$dem) 
-
-#poll &lt;- left_join(poll, popvote, by = &#39;year&#39;)
-
-
-incumb_party &lt;- subset(approval_rating_df, select=c(&#39;Year&#39;, &#39;Party&#39;))
-incumb_party &lt;- incumb_party %&gt;% rename(&quot;year&quot; = &quot;Year&quot;)
-
-
-poll$Party &lt;- ifelse(poll$year == c(&quot;1954&quot;, &quot;1958&quot;, &quot;1970&quot;, &quot;1974&quot;, &quot;1982&quot;, &quot;1986&quot;, &quot;1990&quot;, &quot;2002&quot;, &quot;2006&quot;, &quot;2018&quot;),  &quot;R&quot;, &quot;D&quot;)
-
-
-#poll &lt;- poll %&gt;% left_join(incumb_party, poll, by = &#39;year&#39;)
-
-#create a poll prediction for incumb party
-poll$incumb_poll &lt;- ifelse(poll$Party == &quot;D&quot;, as.character(poll$dem.2.party.poll), as.character(poll$rep.2.party.poll))
-
-poll.ed &lt;- subset(poll, select=c(&#39;year&#39;, &#39;incumb_poll&#39;, &#39;DUE.weight&#39;))
-
-poll.ed &lt;- poll.ed %&gt;% rename(&quot;Year&quot; = &quot;year&quot;)
-
-all &lt;- poll.ed %&gt;% left_join(approval_rating_df, poll.ed, by = &#39;Year&#39;)
-
-
-#lm_polls_DUE_weight_incumb &lt;- rlm(Vote_Share ~ incumb_poll, data = all, weights = DUE.weight, maxit=500)
-
-#need it to be weighted so subtract it from 0.5 or else the numbers with a larger difference would have a larger weight
-#poll$diff &lt;- 0.5 - (poll$dem.2.party.poll - poll$D.popular_vote_pct)
-
-#lm_polls_DUE_weight &lt;- rlm (D.popular_vote_pct ~ dem.2.party.poll, data = poll, weights = DUE.weight)
- 
-#stargazer(lm_polls_DUE_weight,title = &quot;Results&quot;, type = &quot;text&quot;, column.labels = c(&quot;polls&quot;), covariate.labels = c(&quot;Polls&quot;))
-
-#model2 &lt;- predict(lm_polls_DUE_weight, poll, interval=&quot;prediction&quot;)
-#mean(model2)
-
-
-#ignored poll quality and partisan bias because of galton</code></pre>
-<pre class="r"><code>all$incumb_poll &lt;- as.numeric(all$incumb_poll)
-#lm_polls_DUE_weight_incumb &lt;- rlm(Vote_Share ~ incumb_poll, data = all, weights = DUE.weight, maxit=200)
-lm_incumb &lt;- lm(Vote_Share ~ Incumbent, data = approval_rating_df)
-lm_polls &lt;- lm(Vote_Share ~ incumb_poll, data = all)
-lm_all &lt;- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + Upward + upward.cons + incumb_poll + Incumbent, data = all)
-lm_ARr &lt;- lm(Vote_Share ~ Approval_Rating + Upward, data = all)
-lm_CSr &lt;- lm(Vote_Share ~ consumer.sentiment + upward.cons, data = all)
-lm_CS_wo_upward &lt;- lm(Vote_Share ~ consumer.sentiment, data = all)
-library(stargazer)
-stargazer(lm_ARr, lm_CSr, lm_polls, lm_incumb, lm_all, title = &quot;Results&quot;, type = &quot;text&quot;, 
-          column.labels = c(&quot;ApprovalRating&quot;, &quot;ConsumerSentiment&quot;,&quot;Polls&quot;, &quot;Incumbency&quot;, &quot;All&quot;), 
-          covariate.labels = c(&quot;Approval Rating&quot;, &quot;Approval Rating Trend&quot;, &quot;Consumer Rating&quot;, &quot;Consumer Rating Trend&quot;, &quot;Polls&quot;, &quot;Incumbency&quot;))</code></pre>
-<pre><code>## 
-## Results
-## ==============================================================================================================================================
-##                                                                         Dependent variable:                                                   
-##                       ------------------------------------------------------------------------------------------------------------------------
-##                                                                              Vote_Share                                                       
-##                           ApprovalRating         ConsumerSentiment              Polls                Incumbency                 All           
-##                                 (1)                     (2)                      (3)                    (4)                     (5)           
-## ----------------------------------------------------------------------------------------------------------------------------------------------
-## Approval Rating              0.117***                                                                                         0.175***        
-##                               (0.013)                                                                                         (0.009)         
-##                                                                                                                                               
-## Approval Rating Trend        -1.188***                                                                                         -0.139         
-##                               (0.348)                                                                                         (0.331)         
-##                                                                                                                                               
-## Consumer Rating                                      -0.091***                                                               -0.066***        
-##                                                       (0.012)                                                                 (0.012)         
-##                                                                                                                                               
-## Consumer Rating Trend                                -3.000***                                                               -1.125***        
-##                                                       (0.275)                                                                 (0.330)         
-##                                                                                                                                               
-## Polls                                                                        -23.582***                                      -5.870***        
-##                                                                                (2.824)                                        (1.394)         
-##                                                                                                                                               
-## Incumbency                                                                                            0.091***                0.121***        
-##                                                                                                       (0.023)                 (0.004)         
-##                                                                                                                                               
-## Constant                     43.003***               57.563***                60.953***              30.702***               24.969***        
-##                               (0.624)                 (0.979)                  (1.500)                (4.387)                 (1.676)         
-##                                                                                                                                               
-## ----------------------------------------------------------------------------------------------------------------------------------------------
-## Observations                    427                     420                      427                     18                     420           
-## R2                             0.170                   0.420                    0.141                  0.497                   0.828          
-## Adjusted R2                    0.167                   0.418                    0.139                  0.466                   0.825          
-## Residual Std. Error      2.995 (df = 424)         2.520 (df = 417)        3.044 (df = 425)        2.638 (df = 16)         1.380 (df = 413)    
-## F Statistic           43.557*** (df = 2; 424) 151.199*** (df = 2; 417) 69.717*** (df = 1; 425) 15.817*** (df = 1; 16) 331.012*** (df = 6; 413)
-## ==============================================================================================================================================
-## Note:                                                                                                              *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+## ========================================================================================================================================
+##                                                                     Dependent variable:                                                 
+##                     --------------------------------------------------------------------------------------------------------------------
+##                                                                          Vote_Share                                                     
+##                          ApprovalRating       ConsumerSentiment       GenericBallot            Incumbency                 All           
+##                               (1)                    (2)                   (3)                    (4)                     (5)           
+## ----------------------------------------------------------------------------------------------------------------------------------------
+## Approval Rating             0.152***                                                                                    0.240***        
+##                             (0.008)                                                                                     (0.008)         
+##                                                                                                                                         
+## Consumer Sentiment                                 -0.010                                                               0.041***        
+##                                                    (0.012)                                                              (0.006)         
+##                                                                                                                                         
+## Generic Ballot                                                          -8.499***                                       5.376***        
+##                                                                          (2.517)                                        (1.448)         
+##                                                                                                                                         
+## Incumbency                                                                                      0.091***                0.085***        
+##                                                                                                 (0.023)                 (0.004)         
+##                                                                                                                                         
+## Constant                   40.025***              48.418***             52.037***              30.702***               12.105***        
+##                             (0.427)                (1.005)               (1.336)                (4.387)                 (1.679)         
+##                                                                                                                                         
+## ----------------------------------------------------------------------------------------------------------------------------------------
+## Observations                  420                    420                   420                     18                     420           
+## R2                           0.440                  0.002                 0.027                  0.497                   0.716          
+## Adjusted R2                  0.439                 -0.001                 0.024                  0.466                   0.714          
+## Residual Std. Error     2.042 (df = 418)      2.727 (df = 418)      2.693 (df = 418)        2.638 (df = 16)         1.459 (df = 415)    
+## F Statistic         328.980*** (df = 1; 418) 0.763 (df = 1; 418) 11.405*** (df = 1; 418) 15.817*** (df = 1; 16) 262.175*** (df = 4; 415)
+## ========================================================================================================================================
+## Note:                                                                                                        *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+<p>##Regression Analysis
+The adjusted R2 of my model which includes all of my variables is 0.714, which indicates that my model is relatively strong. When looking at the individual coefficients of the variables in my model many of them seem counterintuitive. For example, when I take a regression of only the consumer sentiment, for every point consumer sentiment increases, the incumbent party vote share decreases by 0.010 points. However, when consumer sentiment is added to the entire model this coefficient changes – for every point consumer sentiment increases, the incumbent party vote share increases by 0.041. A similar trend is seen in the generic ballot – for every percentage point increase in the generic ballot that the incumbent party receives, their vote share decreases by 8.499 points. However, when the generic ballot is incorporated into my comprehensive model, for every point the generic ballot increases, the vote share increase by 5.376. These oddities should place scrutiny on my model. Although a variable has an intuitive relationship in the comprehensive model, it is important to look at its individual relationship with the dependent variable. Because these desired relationship does not hold when that variable is examined individually my model is questionable.</p>
+<p>The presidential approval rating and incumbency variables have the desired relationship when the coefficients from the individual model and comprehensive model are examined. For presidential approval rating: for every percentage point increase in presidential approval rating, the incumbent vote share increases by 0.152. This relationship is mirrored in the comprehensive model, as for each percentage point increase in presidential approval rating, the incumbent vote share increases by 0.240. For the incumbency variable: for each additional incumbent candidate, the incumbent vote share increases by 0.091. This relationship is mirrored in the comprehensive model, as for each additional incumbent candidate, the vote share increases by 0.085.</p>
+<pre><code>## [1] 45.58466</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<pre><code>## [1] -0.4395705</code></pre>
+<p>##Model Validation</p>
+<p>I graphed both the in-sample error and the out-of-sample error. I calculated my out-of-sample for each year by removing that year from the dataset and then predicting the election for that year. My in-sample error is much better than my out-of-sample error. My out-of-sample error reflects some underlying issues with my model, which leads me to question the accuracy of my final prediction.</p>
+<pre><code>## [1] 56.07725</code></pre>
+<pre><code>##            Model      Fit      lwr      upr
+## 1 Dem Prediction 45.67219 42.77461 48.56978
+## 2 Rep Prediction 55.97371 53.06932 58.87810</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-11-1.png" width="672" />
+##Prediction</p>
+<p>The following is a graph of my predicted election results. I predict that the Democrats will win 45.58466% of the vote share. The upper and lower bounds of the Democrats and Republicans do not overlap. Therefore, my model is certain in its prediction that the Republicans will obtain the majority of the vote share. However, my model is certainly not perfect, and I look forward to seeing how my prediction compares to the actual results.</p>

@@ -32,7 +32,7 @@ library(cowplot)
 ```{r}
 #read dataframes
 approval_rating_df <- read_csv("~/Desktop/Gov1347/Gov-1347/Final Prediction/Presidential_Approval_Rating_Midterms - Sheet1.csv")
-approval_rating_df
+
 #Graph of approval rating vs voteshare percent
 approval_rating_df <- approval_rating_df %>% drop_na()
 approval_rating_df %>%
@@ -91,12 +91,10 @@ lm_ARr <- lm(Vote_Share ~ Approval_Rating + Upward, data = approval_rating_df)
 lm_CSr <- lm(Vote_Share ~ consumer.sentiment + upward.cons, data = approval_rating_df)
 lm_CS_wo_upward <- lm(Vote_Share ~ consumer.sentiment, data = approval_rating_df)
 lm_ARr_CSr <- lm(Vote_Share ~ Approval_Rating + Upward + consumer.sentiment + upward.cons, data = approval_rating_df)
-stargazer(lm_ARr, lm_CSr, lm_CS_wo_upward, lm_ARr_CSr, title = "Results", type = "text", column.labels = c("AR", "CS+trend", "CS", "AR+CS+trend"), covariate.labels = c("Approval Rating", "Approval Rating Trend", "Consumer Rating", "Consumer Rating Trend"))
 
 data.2022 <- read_csv("~/Desktop/Gov1347/Gov-1347/Final Prediction/Presidential_approval_rating_2022 - Sheet1.csv")
 
-model <- predict(lm_ARr, data.2022, interval="prediction")
-mean(model)
+
 
 #upward variable factors in my interpretation of the trend if the approval rating was increasing or decreasing
 
@@ -143,8 +141,8 @@ poll.ed <- subset(poll, select=c('year', 'incumb_poll', 'DUE.weight'))
 
 poll.ed <- poll.ed %>% rename("Year" = "year")
 
-all <- poll.ed %>% left_join(approval_rating_df, poll.ed, by = 'Year')
-
+all$recency.weight <- case_when(all$Year == '1954'~ 1,  all$Year == '1958'~ 1, all$Year == '1962'~ 2, all$Year == '1966'~ 3, all$Year == '1970'~ 4, all$Year == '1974'~ 5, all$Year == '1978'~ 6, all$Year == '1982'~ 7, all$Year == '1986'~ 8, all$Year == '1990'~ 9, all$Year == '1994'~ 10, all$Year == '1998'~ 11, all$Year == '2002'~ 12, all$Year == '2006'~ 13, all$Year == '2010'~ 14, all$Year == '2014'~ 15, all$Year == '2018'~ 16)
+  
 
 #lm_polls_DUE_weight_incumb <- rlm(Vote_Share ~ incumb_poll, data = all, weights = DUE.weight, maxit=500)
 
@@ -168,23 +166,25 @@ stargazer(lm_polls_DUE_weight, lm_ARr, title = "Results", type = "text", column.
 
 ```{r}
 all$incumb_poll <- as.numeric(all$incumb_poll)
+#all2 <- subset(all, Year %in% c("1980","1984", "1986", "1990", "1994", "1998", "2002", "2006", "2010", "2014", "2018"))
+#all <- all %>% filter (Year == c("1994", "1998", "2002", "2006", "2010", "2014", "2018"))
 #lm_polls_DUE_weight_incumb <- rlm(Vote_Share ~ incumb_poll, data = all, weights = DUE.weight, maxit=200)
 lm_incumb <- lm(Vote_Share ~ Incumbent, data = approval_rating_df)
 lm_polls <- lm(Vote_Share ~ incumb_poll, data = all)
-lm_all <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + Upward + upward.cons + incumb_poll + Incumbent, data = all)
+lm_all <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all)
+lm_all_weighted <- rlm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all, weights = recency.weight, maxit=200)
 lm_ARr <- lm(Vote_Share ~ Approval_Rating + Upward, data = all)
 lm_CSr <- lm(Vote_Share ~ consumer.sentiment + upward.cons, data = all)
 lm_CS_wo_upward <- lm(Vote_Share ~ consumer.sentiment, data = all)
 library(stargazer)
 stargazer(lm_ARr, lm_CSr, lm_polls, lm_incumb, lm_all, title = "Results", type = "text", 
-          column.labels = c("ApprovalRating", "ConsumerSentiment","Polls", "Incumbency", "All"), 
-          covariate.labels = c("Approval Rating", "Approval Rating Trend", "Consumer Rating", "Consumer Rating Trend", "Polls", "Incumbency"))
+          column.labels = c("ApprovalRating", "ConsumerSentiment","GenericBallot", "Incumbency", "All"), 
+          covariate.labels = c("Approval Rating", "Approval Rating Trend", "Consumer Rating", "Consumer Rating Trend", "Generic Ballot", "Incumbency"))
 
 ```
 ```{r}
 #incumbency boost; this will be how many incumbent candidates each party has 
 incumb <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 4/incumb_dist_1948-2022 (2).csv")
-incumb
 incumb_ed <- incumb %>%
   group_by(year) %>% mutate(tot_n=n()) %>% ungroup() %>%
   ## this one is get numerator and calculate % by party
@@ -204,34 +204,294 @@ incumb.2022 <-read_csv("~/Desktop/Gov1347/Gov-1347/Week 6/incumb.csv")
 incumb.2022 <- incumb.2022 %>% filter (year == "2022")
 #length(which(incumb.2022$incumb==1))
 
-ggplot(incumb_ed, aes(x = reorder(year, Dp_n), y = p_n, fill = winner_candidate_inc)) + 
-  geom_bar(stat = "identity") +
-  scale_fill_manual(values = c("darkgreen", "purple1")) +
-  ylab("Incumbency Win Rate") + xlab("Year") +
-  # ggtitle("Incumbency win rate by year") +
-  coord_flip() + 
-  theme_bw() + 
-  theme(axis.title = element_text(size=10),
-        axis.text = element_text(size=5),
-        strip.text.y = element_text(size = 5)) 
 ```
 
 
 ```{r}
 #clean 2022 polls
 polls.2022 <- read.csv("~/Desktop/Gov1347/Gov-1347/Final Prediction/generic_ballot_polls.csv")
-#polls.2022 <- polls.2022 %>% filter(end_date == c("10/1/22", "10/2/22", "10/3/22", "10/4/22", "10/5/22", "10/6/22", "10/7/22", "10/8/22", "10/9/22", "10/10/22", "10/11/22", "10/12/22", "10/13/22", "10/14/22", "10/15/22", "10/16/22", "10/17/22", "10/18/22", "10/19/22", "10/20/22", "10/21/22", "10/22/22", "10/23/22", "10/24/22", "10/25/22", "10/26/22", "10/27/22", "10/28/22", "10/29/22", "10/30/22", "10/31/22", "11/1/22", "11/2/22", "11/3/22", "11/4/22", "11/5/22", "11/6/22", "11/7/22", "11/8/22"))
+polls.2022$end_date <- as.character(polls.2022$end_date )
+polls.2022 <- polls.2022 %>% filter(end_date %in% c("9/18/22", "9/19/22", "9/20/22", "9/21/22", "9/22/22", "9/23/22", "9/24/22", "9/25/22", "9/26/22", "9/27/22", "9/28/22", "9/29/22", "9/30/22", "9/31/22", "10/1/22", "10/2/22", "10/3/22", "10/4/22", "10/5/22", "10/6/22", "10/7/22", "10/8/22", "10/9/22", "10/10/22", "10/11/22", "10/12/22", "10/13/22", "10/14/22", "10/15/22", "10/16/22", "10/17/22", "10/18/22", "10/19/22", "10/20/22", "10/21/22", "10/22/22", "10/23/22", "10/24/22", "10/25/22", "10/26/22", "10/27/22", "10/28/22", "10/29/22", "10/30/22", "10/31/22", "11/1/22", "11/2/22", "11/3/22", "11/4/22", "11/5/22", "11/6/22", "11/7/22", "11/8/22"))
 polls.2022$Year <- 2022
-polls.2022 <- subset(polls.2022, select=c("Year", "dem"))
+polls.2022 <- subset(polls.2022, select=c("Year", "dem", "end_date"))
 polls.2022 <- polls.2022 %>% rename("incumb_poll" = "dem")
 
 data.20 <- merge(data.2022,polls.2022, by = 'Year') 
-
 data.20$incumb_poll <- data.20$incumb_poll * 0.01
+
 
 model <- predict(lm_all, data.20, interval="prediction")
 mean(model)
 ```
 
 
+```{r}
+voteshare_to_seats <- read_csv("~/Desktop/Gov1347/Gov-1347/Week 1/house nationwide vote by party 1948-2020.csv")
+voteshare_to_seats
+lm_seats <- lm(DemWinnerAll ~ DemVotesTotalPercentAll, data = voteshare_to_seats)
+stargazer(lm_seats, type = "text", column.labels = c("Seats"), covariate.labels = ("Seats"), title = "Vote share to seats")
+
+Voteshare.2022 <- data.frame(50.95911) %>% rename( "DemVotesTotalPercentAll" ="X50.95911")
+model.seats <- predict(lm_seats, Voteshare.2022, interval="prediction")
+mean(model.seats)
+```
+```{r}
+#In Sample Fit
+
+Fig1 <- plot(all$Year, all$Vote_Share, 
+     type="l",
+     main="Presidential Approval Rating Model: True vs Predicted Vote Share",
+     xlab = "Year",
+     ylab = "Presidential Incumbent Party Vote Share")
+lines(all$Year, predict(lm_ARr, all), col = "green", lty = 3)
+legend("bottomleft", c("Actual Vote Share", "Presidential Approval Rating"),
+       lty = c(1, 3),
+       col = c("black", "green"))
+
+
+Fig2 <- plot(all$Year, all$Vote_Share, 
+     type="l",
+     main="Cosumer Sentiment Model: True vs Predicted Vote Share",
+     xlab = "Year",
+     ylab = "Presidential Incumbent Party Vote Share")
+lines(all$Year, predict(lm_CSr, all), col = "violet", lty = 3)
+legend("bottomleft", c("Actual Vote Share", "Consumer Sentiment"),
+       lty = c(1, 3),
+       col = c("black", "violet"))
+
+Fig3 <- plot(all$Year, all$Vote_Share, 
+     type="l",
+     main="Generic Ballot Model: True vs Predicted Vote Share",
+     xlab = "Year",
+     ylab = "Presidential Incumbent Party Vote Share")
+lines(all$Year, predict(lm_polls, all), col = "blue", lty = 3)
+legend("bottomleft", c("Actual Vote Share", "Generic Ballot"),
+       lty = c(1, 3),
+       col = c("black", "blue"))
+
+Fig4 <- plot(all$Year, all$Vote_Share, 
+     type="l",
+     main="Incumbent Model: True vs Predicted Vote Share",
+     xlab = "Year",
+     ylab = "Presidential Incumbent Party Vote Share")
+lines(all$Year, predict(lm_incumb, all), col = "purple", lty = 3)
+legend("bottomleft", c("Actual Vote Share", "Incuembent"),
+       lty = c(1, 3),
+       col = c("black", "purple"))
+library(ggplot2)
+library(gridExtra)
+library(cowplot)
+
+
+plot(all$Year, all$Vote_Share, 
+     type="l",
+     main="Final Prediction Model: True vs Predicted Vote Share",
+     xlab = "Year",
+     ylab = "Presidential Incumbent Party Vote Share")
+lines(all$Year, predict(lm_all, all), col = "red", lty = 3, type="l")
+legend("bottomleft", c("Actual Vote Share", "Final Prediction Model"),
+       lty = c(1, 3),
+       col = c("black", "red"))
+
+
+```
+
+```{r}
+#out of sample fit 
+#2018
+all_outsamp_2018 <- all %>%  filter(all$Year !=2018)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_2018)
+pred.2018 <- all %>% filter(all$Year == 2018)
+outsamp_pred2018 <- predict(outsamp_mod1, 
+                       pred.2018, interval="prediction")
+outsamp.2018.error <- mean(outsamp_pred2018) - mean(pred.2018$Vote_Share)
+
+#2014
+all_outsamp_2014 <- all %>%  filter(all$Year !=2014)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_2014)
+pred.2014 <- all %>% filter(all$Year == 2014)
+outsamp_pred2014 <- predict(outsamp_mod1, 
+                       pred.2014, interval="prediction")
+outsamp.2014.error <- mean(outsamp_pred2014) - mean(pred.2014$Vote_Share)
+
+#2010
+all_outsamp_2010 <- all %>%  filter(all$Year !=2010)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_2010)
+pred.2010 <- all %>% filter(all$Year == 2010)
+outsamp_pred2010 <- predict(outsamp_mod1, 
+                       pred.2010, interval="prediction")
+outsamp.2010.error <- mean(outsamp_pred2010) - mean(pred.2010$Vote_Share)
+
+#2006
+all_outsamp_2006 <- all %>%  filter(all$Year !=2006)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_2006)
+pred.2006 <- all %>% filter(all$Year == 2006)
+outsamp_pred2006 <- predict(outsamp_mod1, 
+                       pred.2006, interval="prediction")
+outsamp.2006.error <- mean(outsamp_pred2006) - mean(pred.2006$Vote_Share)
+
+#2002
+all_outsamp_2002 <- all %>%  filter(all$Year !=2002)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_2002)
+pred.2002 <- all %>% filter(all$Year == 2002)
+outsamp_pred2002 <- predict(outsamp_mod1, 
+                       pred.2002, interval="prediction")
+outsamp.2002.error <- mean(outsamp_pred2002) - mean(pred.2002$Vote_Share)
+
+#1998
+all_outsamp_1998 <- all %>%  filter(all$Year !=1998)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_1998)
+pred.1998 <- all %>% filter(all$Year == 1998)
+outsamp_pred1998 <- predict(outsamp_mod1, 
+                       pred.1998, interval="prediction")
+outsamp.1998.error <- mean(outsamp_pred1998) - mean(pred.1998$Vote_Share)
+
+#1994
+all_outsamp_1994 <- all %>%  filter(all$Year !=1994)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_1994)
+pred.1994 <- all %>% filter(all$Year == 1994)
+outsamp_pred1994 <- predict(outsamp_mod1, 
+                       pred.1994, interval="prediction")
+outsamp.1994.error <- mean(outsamp_pred1994) - mean(pred.1994$Vote_Share)
+
+#1990
+all_outsamp_1990 <- all %>%  filter(all$Year !=1990)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_1990)
+pred.1990 <- all %>% filter(all$Year == 1990)
+outsamp_pred1990 <- predict(outsamp_mod1, 
+                       pred.1990, interval="prediction")
+outsamp.1990.error <- mean(outsamp_pred1990) - mean(pred.1990$Vote_Share)
+
+#1986
+all_outsamp_1986 <- all %>%  filter(all$Year !=1986)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_1986)
+pred.1986 <- all %>% filter(all$Year == 1986)
+outsamp_pred1986 <- predict(outsamp_mod1, 
+                       pred.1986, interval="prediction")
+outsamp.1986.error <- mean(outsamp_pred1986) - mean(pred.1986$Vote_Share)
+
+#1982
+all_outsamp_1982 <- all %>%  filter(all$Year !=1982)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_1982)
+pred.1982 <- all %>% filter(all$Year == 1982)
+outsamp_pred1982 <- predict(outsamp_mod1, 
+                       pred.1982, interval="prediction")
+outsamp.1982.error <- mean(outsamp_pred1982) - mean(pred.1982$Vote_Share)
+
+#1978
+all_outsamp_1978 <- all %>%  filter(all$Year !=1978)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_1978)
+pred.1978 <- all %>% filter(all$Year == 1978)
+outsamp_pred1978 <- predict(outsamp_mod1, 
+                       pred.1978, interval="prediction")
+outsamp.1978.error <- mean(outsamp_pred1978) - mean(pred.1978$Vote_Share)
+
+#1974
+all_outsamp_1974 <- all %>%  filter(all$Year !=1974)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_1974)
+pred.1974 <- all %>% filter(all$Year == 1974)
+outsamp_pred1974 <- predict(outsamp_mod1, 
+                       pred.1974, interval="prediction")
+outsamp.1974.error <- mean(outsamp_pred1974) - mean(pred.1974$Vote_Share)
+
+#1970
+all_outsamp_1970 <- all %>%  filter(all$Year !=1970)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_1970)
+pred.1970 <- all %>% filter(all$Year == 1970)
+outsamp_pred1970 <- predict(outsamp_mod1, 
+                       pred.1970, interval="prediction")
+outsamp.1970.error <- mean(outsamp_pred1970) - mean(pred.1970$Vote_Share)
+
+#1966
+all_outsamp_1966 <- all %>%  filter(all$Year !=1966)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_1966)
+pred.1966 <- all %>% filter(all$Year == 1966)
+outsamp_pred1966 <- predict(outsamp_mod1, 
+                       pred.1966, interval="prediction")
+outsamp.1966.error <- mean(outsamp_pred1966) - mean(pred.1966$Vote_Share)
+
+#1962
+all_outsamp_1962 <- all %>%  filter(all$Year !=1962)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_1962)
+pred.1962 <- all %>% filter(all$Year == 1962)
+outsamp_pred1962 <- predict(outsamp_mod1, 
+                       pred.1962, interval="prediction")
+outsamp.1962.error <- mean(outsamp_pred1962) - mean(pred.1962$Vote_Share)
+
+#1958
+all_outsamp_1958 <- all %>%  filter(all$Year !=1958)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_1958)
+pred.1958 <- all %>% filter(all$Year == 1958)
+outsamp_pred1958 <- predict(outsamp_mod1, 
+                       pred.1958, interval="prediction")
+outsamp.1958.error <- mean(outsamp_pred1958) - mean(pred.1958$Vote_Share)
+
+#1954
+all_outsamp_1954 <- all %>%  filter(all$Year !=1954)
+outsamp_mod1 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all_outsamp_1954)
+pred.1954 <- all %>% filter(all$Year == 1954)
+outsamp_pred1954 <- predict(outsamp_mod1, 
+                       pred.1954, interval="prediction")
+outsamp.1954.error <- mean(outsamp_pred1954) - mean(pred.1954$Vote_Share)
+
+outsamp.error.vector <- c(outsamp.1954.error, outsamp.1958.error, outsamp.1962.error, outsamp.1966.error, outsamp.1970.error, outsamp.1974.error, outsamp.1978.error, outsamp.1982.error, outsamp.1986.error, outsamp.1990.error, outsamp.1994.error, outsamp.1998.error, outsamp.2002.error, outsamp.2006.error, outsamp.2010.error, outsamp.2014.error, outsamp.2018.error)
+
+out.sample.pred <-c(mean(outsamp_pred1954), mean(outsamp_pred1958), mean(outsamp_pred1962), mean(outsamp_pred1966), mean(outsamp_pred1970), mean(outsamp_pred1974), mean(outsamp_pred1978), mean(outsamp_pred1982), mean(outsamp_pred1986), mean(outsamp_pred1990), mean(outsamp_pred1994), mean(outsamp_pred1998), mean(outsamp_pred2002), mean(outsamp_pred2006), mean(outsamp_pred2010), mean(outsamp_pred2014), mean(outsamp_pred2018))
+
+Voteshare <-c(mean(pred.1954$Vote_Share), mean(pred.1958$Vote_Share), mean(pred.1962$Vote_Share), mean(pred.1966$Vote_Share), mean(pred.1970$Vote_Share), mean(pred.1974$Vote_Share), mean(pred.1978$Vote_Share), mean(pred.1982$Vote_Share), mean(pred.1986$Vote_Share), mean(pred.1990$Vote_Share), mean(pred.1994$Vote_Share), mean(pred.1998$Vote_Share), mean(pred.2002$Vote_Share), mean(pred.2006$Vote_Share), mean(pred.2010$Vote_Share), mean(pred.2014$Vote_Share), mean(pred.2018$Vote_Share))
+
+Year <- c("1954", "1958", "1962", "1966", "1970", "1974", "1978", "1982", "1986", "1990", "1994", "1998", "2002", "2006","2010", "2014", "2018")
+
+outsamp_pred_df <- as.data.frame(out.sample.pred)
+outsamp_pred_df$Year <- Year
+outsamp_pred_df$Voteshare <- Voteshare
+outsamp_pred_df
+plot(all$Year, all$Vote_Share,
+     type="l",
+     main="Out of Sample Model: True vs Predicted Vote Share",
+     xlab = "Year",
+     ylab = "Presidential Incumbent Party Vote Share")
+lines(outsamp_pred_df$Year, outsamp_pred_df$out.sample.pred, col = "red", lty = 3, type="l")
+legend("bottomleft", c("Actual Vote Share", "Out of Sample Prediction"),
+       lty = c(1, 3),
+       col = c("black", "red"))
+
+outsamp_df <- as.data.frame(outsamp.error.vector)
+outsamp_df$Year <- Year
+
+mean(outsamp.error.vector)
+
+outsamp_df <- as.data.frame(c(outsamp.error.vector, Year))
+
+
+
+
+
+```
+
+```{r}
+all$Rep_Vote_Share <- 100-all$Vote_Share
+lm_all_Rep <- lm(Rep_Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Upward + upward.cons + Incumbent, data = all)
+model_Rep <- predict(lm_all_Rep, data.20, interval="prediction")
+mean(model_Rep)
+
+
+interval <- data.frame("Model" = character(),    # Create empty data frame
+                    "Fit" = numeric(),
+                    "lwr" = numeric(),
+                    "upr" = numeric(),
+                    stringsAsFactors = FALSE)
+interval[1, ] <- list("Dem Prediction", model[1,1], model[1,2], model[1,3])
+interval[2, ] <- list("Rep Prediction", model_Rep[1,1], model_Rep[1,2], model_Rep[1,3])
+interval$lwr <- as.numeric(interval$lwr)
+interval$Fit <- as.numeric(interval$Fit)
+interval$upr <- as.numeric(interval$upr)
+print(interval)
+ggplot(data = interval, aes(x = Model, y = Fit, col = Model)) + 
+  geom_point() + 
+  geom_errorbar(aes(ymin = lwr, ymax = upr)) + 
+  labs(title = "2022 Prediction") + 
+  scale_color_manual(values = c("Blue", "Red")) +
+  geom_hline(yintercept = 50, linetype = 'dashed')
+```
 
