@@ -60,9 +60,9 @@ lm_all <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + 
 all4$Rep_Vote_Shares <- 100-all4$Vote_Share
 lm_all_Rep <- lm(Rep_Vote_Shares ~ Approval_Rating  + consumer.sentiment + incumb_poll + Incumbent, data = all4)
 model_Rep <- predict(lm_all_Rep, data.20, interval="prediction")
-mean(model_Rep)
+
 model <- predict(lm_all, data.20, interval="prediction")
-mean(model)
+
 
 
 interval <- data.frame("Model" = character(),    # Create empty data frame
@@ -175,14 +175,9 @@ library(ggplot2)
 library(gridExtra)
 library(cowplot)
 
-model1
-model2
-model3
-model4
-
 plot_grid(model1, model2, model3, model4,  ncol = 2)
 ```
-In the above models, I plotted the accuracy of each of my indicators. Looking at consumer sentiment, 2022 is not a novelty year. With a consumer sentiment of 59.9, its vote share falls directly on the trend line. Again, with approval rating, 2022 is relevatily close to the line. With incumbency, which is a measure of the number of incumbent members running, 2022 again falls on the trend line. This same relationship is seen with the generic ballot. Based off of my four indicators 2022 does not seem to be a novelty year. However, when I examine these four graphs more closely, I notice a historical trend: the more recent the year, the closer it is to the trend line, and the less recent the year, the higher the likelihood of it being an outlier. Using a color scale, I visually represented this: the more recent the year, the more orange the year’s color is, and the less recent the year, the more green the year’s color is. The outliers tend to be green on all of these maps. Therefore, I hypothesized that in my attempts to have more data points, I included old years that threw off the accuracy of my model. 
+In the above models, I plotted the accuracy of each of my indicators. Looking at consumer sentiment, 2022 is not a novelty year. With a consumer sentiment of 59.9, its vote share falls directly on the trend line. Again, with approval rating, 2022 is relatively close to the line. With incumbency, which is a measure of the number of incumbent members running, 2022 again falls on the trend line. This same relationship is seen with the generic ballot. Based off of my four indicators 2022 does not seem to be a novelty year. However, when I examine these four graphs more closely, I notice a historical trend: the more recent the year, the closer it is to the trend line, and the less recent the year, the higher the likelihood of it being an outlier. Using a color scale, I visually represented this: the more recent the year, the more orange the year’s color is, and the less recent the year, the more green the year’s color is. The outliers tend to be green on all of these maps. Therefore, I hypothesized that in my attempts to have more data points, I included old years that threw off the accuracy of my model. 
 
 ```{r, message = FALSE, echo=FALSE}
 all4.recent.year <- subset(all4, Year  %in% c('1986', '1990', '1994', '1998', '2002', '2006', '2010', '2014', '2018'))
@@ -204,7 +199,38 @@ interval$upr <- as.numeric(interval$upr)
 print(interval)
 ```
 
-So, I tested this hypothesis. I removed half of the year from my dataset – all of the years that were green, which was any year prior to 1986. I reran my prediction model, and my prediction changed to 45.83%. This is slightly more accurate, but did not make a large difference. I suspect that while the older years were outliers, they violated the trend on either end of the scale, and thus canceled each other out. 
+So, I tested this hypothesis. I removed half of the year from my dataset – all of the years that were green, which was any year prior to 1986. I reran my prediction model, and my prediction changed to 45.8%. This also bumped my R2 up from 0.714 to 0.752. This is slightly more accurate, but did not make a large difference. I suspect that while the older years were outliers, they violated the trend on either end of the scale, and thus canceled each other out. 
+
+I think one of the huge issue I had throughout this course was adjusting my predictions to match popular forcasters. I assumed that the forecasters, such as the Economist and Five-Thirty-Eight, were right and based the accuracy of my prediction off of their predictions. This created biases in my model. I cannot test the effect of this bias, but it is something to keep in mind. 
+
+Another potential flaw in my model was that I used incumbency as my model base, rather than party, meaning I measured how my variables interacted with the incumbent party vote share, rather than how they interacted with the Democratic or Republican party. My model assumed that the Democratic and Republican vote shares reacted the same to fundamentals. However, this is not true. For example, in my blog 3 post, I found a positive relationship between the consumer sentiment and Republican party vote share. However, when I performed the same test for the Democratic party, I found a negative relationship between consumer sentiment and the Democratic party vote share. This may indicate that voters attach certain fundamentals to certain parties. My statistical tests on consumer sentiment suggest that voters use economic fundamentals to evaluate the Republican party, but not the evaluate the Democratic party. Therefore, I hypothesize that I should have incorporated a party variable into my model. 
+
+```{r,  message = FALSE, echo=FALSE}
+#party indicator test
+
+all4$party_indicator <- ifelse(all4$Party == "D", "1", "0")
 
 
+lm_all_party <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Incumbent + party_indicator, data = all4)
+
+data.20$party_indicator <-  ifelse(data.20$Party == "D", "1", "0")
+
+model_party <- predict(lm_all_party, data.20, interval="prediction")
+mean(model_party)
+
+
+interval <- data.frame("model_party" = character(),    # Create empty data frame
+                    "Fit" = numeric(),
+                    "lwr" = numeric(),
+                    "upr" = numeric(),
+                    stringsAsFactors = FALSE)
+interval[1, ] <- list("Dem Prediction", model[1,1], model[1,2], model[1,3])
+interval[2, ] <- list("Rep Prediction", model_Rep[1,1], model_Rep[1,2], model_Rep[1,3])
+interval$lwr <- as.numeric(interval$lwr)
+interval$Fit <- as.numeric(interval$Fit)
+interval$upr <- as.numeric(interval$upr)
+print(interval)
+```
+
+I tested my hypothesis by creating a party indicator. The R2 of this variable of this variable when input into the overall prediction model was -0.419 – it was my only negative R2. It slightly improved the R2 of the overall model from 0.714 to 0.721. However, this R2 increase is likely simply a proxy of adding an additional variable, which leads to overfitting. Additionally, my prediction became less accurate at 45.47%. Therefore, the interaction between my four variables and party seems to have minimal effect, if any.  
 
