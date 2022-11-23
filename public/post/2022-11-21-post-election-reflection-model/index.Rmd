@@ -1,0 +1,210 @@
+---
+title: Post Election Reflection Model
+author: R package build
+date: '2022-11-21'
+slug: []
+categories: []
+tags: []
+---
+```{r, message = FALSE, echo=FALSE}
+library(tidyverse)
+library(janitor)
+library(glmnet)
+library(sf)
+library(plotly)
+library(usmap)
+library(rmapshaper)
+library(blogdown)
+library(gridExtra)
+library(stargazer)
+library(lubridate)
+library(dplyr)
+#library(caret)
+library(leaps)
+library(ggthemes)
+#library(usdata)
+#library(gt)
+#library(gtsummary)
+library(cowplot)
+```
+
+Welcome to my 2022 Midterm blog series. I’m Kaela Ellis, a junior at Harvard College studying Government. This semester I am taking Gov 1347: Election Analytics taught by Professor Ryan Enos, which has led to the creation of this blog. The goal of this blog series is to predict the 2022 Midterm election. With this blog series I predicted that Democrats would win 45.58466% of the vote share. While some of the election results are still contested, as of 11/21/2022, the Democrats won 48.32% of the popular vote. 
+
+```{r, message = FALSE, echo=FALSE}
+all4 <- read_csv("~/Desktop/Gov1347/Gov-1347/Final Prediction/Gov1347_Final_Prediction_all - Sheet1.csv")
+lm_all <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Incumbent, data = all4)
+#Recreating data.20 dataset
+data.2022 <- read_csv("~/Desktop/Gov1347/Gov-1347/Final Prediction/Presidential_approval_rating_2022 - Sheet1.csv")
+#clean 2022 polls
+polls.2022 <- read.csv("~/Desktop/Gov1347/Gov-1347/Final Prediction/generic_ballot_polls.csv")
+polls.2022$end_date <- as.character(polls.2022$end_date )
+polls.2022 <- polls.2022 %>% filter(end_date %in% c("9/18/22", "9/19/22", "9/20/22", "9/21/22", "9/22/22", "9/23/22", "9/24/22", "9/25/22", "9/26/22", "9/27/22", "9/28/22", "9/29/22", "9/30/22", "9/31/22", "10/1/22", "10/2/22", "10/3/22", "10/4/22", "10/5/22", "10/6/22", "10/7/22", "10/8/22", "10/9/22", "10/10/22", "10/11/22", "10/12/22", "10/13/22", "10/14/22", "10/15/22", "10/16/22", "10/17/22", "10/18/22", "10/19/22", "10/20/22", "10/21/22", "10/22/22", "10/23/22", "10/24/22", "10/25/22", "10/26/22", "10/27/22", "10/28/22", "10/29/22", "10/30/22", "10/31/22", "11/1/22", "11/2/22", "11/3/22", "11/4/22", "11/5/22", "11/6/22", "11/7/22", "11/8/22"))
+polls.2022$Year <- 2022
+polls.2022 <- subset(polls.2022, select=c("Year", "dem", "end_date"))
+polls.2022 <- polls.2022 %>% dplyr::rename("incumb_poll" = "dem")
+
+data.20 <- merge(data.2022,polls.2022, by = 'Year') 
+data.20$incumb_poll <- data.20$incumb_poll * 0.01
+
+
+model <- predict(lm_all, data.20, interval="prediction")
+mean(model)
+```
+
+
+```{r, message = FALSE, echo=FALSE}
+#read dataframes
+all4 <- read_csv("~/Desktop/Gov1347/Gov-1347/Final Prediction/Gov1347_Final_Prediction_all - Sheet1.csv")
+lm_all <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Incumbent, data = all4)
+
+all4$Rep_Vote_Shares <- 100-all4$Vote_Share
+lm_all_Rep <- lm(Rep_Vote_Shares ~ Approval_Rating  + consumer.sentiment + incumb_poll + Incumbent, data = all4)
+model_Rep <- predict(lm_all_Rep, data.20, interval="prediction")
+mean(model_Rep)
+model <- predict(lm_all, data.20, interval="prediction")
+mean(model)
+
+
+interval <- data.frame("Model" = character(),    # Create empty data frame
+                    "Fit" = numeric(),
+                    "lwr" = numeric(),
+                    "upr" = numeric(),
+                    stringsAsFactors = FALSE)
+interval[1, ] <- list("Dem Prediction", model[1,1], model[1,2], model[1,3])
+interval[2, ] <- list("Rep Prediction", model_Rep[1,1], model_Rep[1,2], model_Rep[1,3])
+interval$lwr <- as.numeric(interval$lwr)
+interval$Fit <- as.numeric(interval$Fit)
+interval$upr <- as.numeric(interval$upr)
+print(interval)
+ggplot(data = interval, aes(x = Model, y = Fit, col = Model)) + 
+  geom_point() + 
+  geom_errorbar(aes(ymin = lwr, ymax = upr)) + 
+  labs(title = "2022 Prediction") + 
+  scale_color_manual(values = c("Blue", "Red")) +
+  geom_hline(yintercept = 50, linetype = 'dashed')
+```
+In my forecast model, I used four variables from only midterm years dating back to 1954: approval rating, consumer sentiment, generic ballot, and incumbency. My model was formatted around predicting the incumbent party’s vote share largely because of retrospective voting theory. Under this theory, voters use elections to hold incumbents accountable; so, if their welfare has decreased, they won’t reelect the incumbent. Therefore, I compared the consumer sentiment and presidential approval rating to the incumbent president’s vote share. Using my four indicators, I obtained an R2 of 0.714, and a Democratic party loss of 45.58466% of the vote share. This prediction was 2.74% points lower than the actual Democratic two-party vote share of 48.32%. The prediction does fall in my predicted range, as my upper bound is 48.57%. However, my prediction was still significantly off, and in the remainder of this post I will examine different reasons for this result. 
+
+
+
+```{r, message = FALSE, echo=FALSE}
+lm_all <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Incumbent, data = all4)
+
+```
+
+
+```{r, message = FALSE, echo=FALSE}
+all.and.2022 <- read_csv("~/Desktop/Gov1347/Gov-1347/Post Election Reflection/Gov1347_Historical+2022_data - Sheet1.csv")
+lm_all.2022 <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Incumbent, data = all.and.2022)
+
+plot(all.and.2022$Year, all.and.2022$Vote_Share, 
+     type="l",
+     main="In Sample Error Model: True vs Predicted Vote Share",
+     xlab = "Year",
+     ylab = "Presidential Incumbent Party Vote Share")
+lines(all.and.2022$Year, predict(lm_all.2022, all.and.2022), col = "red", lty = 3, type="l")
+legend("bottomleft", c("Actual Vote Share", "Final Prediction Model"),
+       lty = c(1, 3),
+       col = c("black", "red"))
+```
+```{r, message = FALSE, echo=FALSE}
+library(plotrix)
+library(ggforce)
+model1 <- all.and.2022 %>%
+  ggplot(aes(x=consumer.sentiment, y=Vote_Share,
+             label=Year, color=as.integer(Year))) + 
+    geom_text(size = 4) +
+    geom_smooth(method="lm", formula = y ~ x) +
+    geom_hline(yintercept=50, lty=2) +
+    geom_vline(xintercept=50, lty=2) + # median
+    xlab("Consumer Sentiment") +
+    ylab("Incumbent Party Vote Share") +
+    theme_bw() +
+    ggtitle("Consumer Sentiment vs Incumbent Party Vote Share") +
+  theme(axis.text = element_text(size = 12),
+          axis.title = element_text(size = 12),
+          plot.title = element_text(size = 12)) + scale_colour_gradient(low="green", high="orange" ) +
+    labs(color="Year") +  geom_circle(aes(x0=60, y0=48, r=1), inherit.aes=FALSE)
+model2 <- all.and.2022 %>%
+  ggplot(aes(x=Approval_Rating, y=Vote_Share,
+             label=Year, color=as.integer(Year))) + 
+    geom_text(size = 4) +
+    geom_smooth(method="lm", formula = y ~ x) +
+    geom_hline(yintercept=50, lty=2) +
+    geom_vline(xintercept=50, lty=2) + # median
+    xlab("Approval Rating") +
+    ylab("Incumbent Party Vote Share") +
+    theme_bw() +
+    ggtitle("Approval Rating vs Incumbent Party Vote Share") +
+  theme(axis.text = element_text(size = 12),
+          axis.title = element_text(size = 12),
+          plot.title = element_text(size = 12)) +scale_colour_gradient(low="green", high="orange" ) +
+    labs(color="Year") + geom_circle(aes(x0=40, y0=48.25, r=1), inherit.aes=FALSE)
+model3 <- all.and.2022 %>%
+  ggplot(aes(x=Incumbent, y=Vote_Share,
+             label=Year, color=as.integer(Year))) + 
+    geom_text(size = 4) +
+    geom_smooth(method="lm", formula = y ~ x) +
+    geom_hline(yintercept=50, lty=2) +
+    geom_vline(xintercept=218, lty=2) + # median
+    xlab("# of Incumbent House Members") +
+    ylab("Incumbent Party Vote Share") +
+    theme_bw() +
+    ggtitle("Incumbency vs Incumbent Party Vote Share") +
+  theme(axis.text = element_text(size = 12),
+          axis.title = element_text(size = 12),
+          plot.title = element_text(size = 12)) + scale_colour_gradient(low="green", high="orange" ) +
+    labs(color="Year") + geom_circle(aes(x0=223, y0=48.25, r=1), inherit.aes=FALSE)
+all.and.2022$incumb_poll.ed <- all.and.2022$incumb_poll * 100
+model4 <- all.and.2022 %>% group_by(Year) %>% summarise_all(mean) %>% 
+  ggplot(aes(x=incumb_poll.ed, y=Vote_Share,
+             label=Year, color=as.integer(Year))) + 
+    geom_text(size = 4) +
+    geom_smooth(method="lm", formula = y ~ x) +
+    geom_hline(yintercept=50, lty=2) +
+    geom_vline(xintercept=50, lty=2) + # median
+    xlab("Generic Ballot") +
+    ylab("Incumbent Party Vote Share") +
+    theme_bw() +
+    ggtitle("Generic Ballot vs Incumbent Party Vote Share") +
+  theme(axis.text = element_text(size = 12),
+          axis.title = element_text(size = 12),
+          plot.title = element_text(size = 12))  + scale_colour_gradient(low="green", high="orange" ) +
+    labs(color="Year") + geom_circle(aes(x0=45.7, y0=48.25, r=1), inherit.aes=FALSE)
+library(ggplot2)
+library(gridExtra)
+library(cowplot)
+
+model1
+model2
+model3
+model4
+
+plot_grid(model1, model2, model3, model4,  ncol = 2)
+```
+In the above models, I plotted the accuracy of each of my indicators. Looking at consumer sentiment, 2022 is not a novelty year. With a consumer sentiment of 59.9, its vote share falls directly on the trend line. Again, with approval rating, 2022 is relevatily close to the line. With incumbency, which is a measure of the number of incumbent members running, 2022 again falls on the trend line. This same relationship is seen with the generic ballot. Based off of my four indicators 2022 does not seem to be a novelty year. However, when I examine these four graphs more closely, I notice a historical trend: the more recent the year, the closer it is to the trend line, and the less recent the year, the higher the likelihood of it being an outlier. Using a color scale, I visually represented this: the more recent the year, the more orange the year’s color is, and the less recent the year, the more green the year’s color is. The outliers tend to be green on all of these maps. Therefore, I hypothesized that in my attempts to have more data points, I included old years that threw off the accuracy of my model. 
+
+```{r, message = FALSE, echo=FALSE}
+all4.recent.year <- subset(all4, Year  %in% c('1986', '1990', '1994', '1998', '2002', '2006', '2010', '2014', '2018'))
+lm_all_recent_year <- lm(Vote_Share ~ Approval_Rating  + consumer.sentiment + incumb_poll + Incumbent, data = all4.recent.year)
+
+model_recent <- predict(lm_all_recent_year, data.20, interval="prediction")
+mean(model_recent)
+
+interval <- data.frame("model_recent" = character(),    # Create empty data frame
+                    "Fit" = numeric(),
+                    "lwr" = numeric(),
+                    "upr" = numeric(),
+                    stringsAsFactors = FALSE)
+interval[1, ] <- list("Dem Prediction", model[1,1], model[1,2], model[1,3])
+interval[2, ] <- list("Rep Prediction", model_Rep[1,1], model_Rep[1,2], model_Rep[1,3])
+interval$lwr <- as.numeric(interval$lwr)
+interval$Fit <- as.numeric(interval$Fit)
+interval$upr <- as.numeric(interval$upr)
+print(interval)
+```
+
+So, I tested this hypothesis. I removed half of the year from my dataset – all of the years that were green, which was any year prior to 1986. I reran my prediction model, and my prediction changed to 45.83%. This is slightly more accurate, but did not make a large difference. I suspect that while the older years were outliers, they violated the trend on either end of the scale, and thus canceled each other out. 
+
+
+

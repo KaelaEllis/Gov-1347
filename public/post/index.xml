@@ -6,7 +6,16 @@
     <description>Recent content in Posts on My New Hugo Site</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 07 Nov 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 21 Nov 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Post Election Reflection Model</title>
+      <link>http://example.org/post/2022-11-21-post-election-reflection-model/</link>
+      <pubDate>Mon, 21 Nov 2022 00:00:00 +0000</pubDate>
+      
+      <guid>http://example.org/post/2022-11-21-post-election-reflection-model/</guid>
+      <description>Welcome to my 2022 Midterm blog series. I’m Kaela Ellis, a junior at Harvard College studying Government. This semester I am taking Gov 1347: Election Analytics taught by Professor Ryan Enos, which has led to the creation of this blog. The goal of this blog series is to predict the 2022 Midterm election. With this blog series I predicted that Democrats would win 45.58466% of the vote share. While some of the election results are still contested, as of 11/21/2022, the Democrats won 48.</description>
+    </item>
+    
     <item>
       <title>Final Prediction</title>
       <link>http://example.org/post/2022-11-07-final-prediction/</link>

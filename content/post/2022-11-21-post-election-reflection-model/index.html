@@ -1,0 +1,116 @@
+---
+title: Post Election Reflection Model
+author: R package build
+date: '2022-11-21'
+slug: []
+categories: []
+tags: []
+---
+
+
+
+<p>Welcome to my 2022 Midterm blog series. I’m Kaela Ellis, a junior at Harvard College studying Government. This semester I am taking Gov 1347: Election Analytics taught by Professor Ryan Enos, which has led to the creation of this blog. The goal of this blog series is to predict the 2022 Midterm election. With this blog series I predicted that Democrats would win 45.58466% of the vote share. While some of the election results are still contested, as of 11/21/2022, the Democrats won 48.32% of the popular vote.</p>
+<pre><code>## [1] 45.58466</code></pre>
+<pre><code>## [1] 54.41534</code></pre>
+<pre><code>## [1] 45.58466</code></pre>
+<pre><code>##            Model      Fit      lwr      upr
+## 1 Dem Prediction 45.67219 42.77461 48.56978
+## 2 Rep Prediction 54.32781 51.43022 57.22539</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+In my forecast model, I used four variables from only midterm years dating back to 1954: approval rating, consumer sentiment, generic ballot, and incumbency. My model was formatted around predicting the incumbent party’s vote share largely because of retrospective voting theory. Under this theory, voters use elections to hold incumbents accountable; so, if their welfare has decreased, they won’t reelect the incumbent. Therefore, I compared the consumer sentiment and presidential approval rating to the incumbent president’s vote share. Using my four indicators, I obtained an R2 of 0.714, and a Democratic party loss of 45.58466% of the vote share. This prediction was 2.74% points lower than the actual Democratic two-party vote share of 48.32%. The prediction does fall in my predicted range, as my upper bound is 48.57%. However, my prediction was still significantly off, and in the remainder of this post I will examine different reasons for this result.</p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre><code>## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA
+
+## Warning in mean.default(President): argument is not numeric or logical:
+## returning NA</code></pre>
+<pre><code>## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA
+
+## Warning in mean.default(Party): argument is not numeric or logical: returning NA</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-2.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-3.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-4.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-5.png" width="672" />
+In the above models, I plotted the accuracy of each of my indicators. Looking at consumer sentiment, 2022 is not a novelty year. With a consumer sentiment of 59.9, its vote share falls directly on the trend line. Again, with approval rating, 2022 is relevatily close to the line. With incumbency, which is a measure of the number of incumbent members running, 2022 again falls on the trend line. This same relationship is seen with the generic ballot. Based off of my four indicators 2022 does not seem to be a novelty year. However, when I examine these four graphs more closely, I notice a historical trend: the more recent the year, the closer it is to the trend line, and the less recent the year, the higher the likelihood of it being an outlier. Using a color scale, I visually represented this: the more recent the year, the more orange the year’s color is, and the less recent the year, the more green the year’s color is. The outliers tend to be green on all of these maps. Therefore, I hypothesized that in my attempts to have more data points, I included old years that threw off the accuracy of my model.</p>
+<pre><code>## [1] 45.80753</code></pre>
+<pre><code>##     model_recent      Fit      lwr      upr
+## 1 Dem Prediction 45.67219 42.77461 48.56978
+## 2 Rep Prediction 54.32781 51.43022 57.22539</code></pre>
+<p>So, I tested this hypothesis. I removed half of the year from my dataset – all of the years that were green, which was any year prior to 1986. I reran my prediction model, and my prediction changed to 45.83%. This is slightly more accurate, but did not make a large difference. I suspect that while the older years were outliers, they violated the trend on either end of the scale, and thus canceled each other out.</p>
