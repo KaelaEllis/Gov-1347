@@ -6,7 +6,17 @@
     <description>Recent content on My New Hugo Site</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 21 Nov 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 06 Dec 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Post-election Campaign Narrative</title>
+      <link>http://example.org/post/2022-12-06-post-election-campaign-narrative/</link>
+      <pubDate>Tue, 06 Dec 2022 00:00:00 +0000</pubDate>
+      
+      <guid>http://example.org/post/2022-12-06-post-election-campaign-narrative/</guid>
+      <description>Welcome to my 2022 Midterm blog series. I’m Kaela Ellis, a junior at Harvard College studying Government.
+library(tidyverse) ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ── ## ✔ ggplot2 3.3.6 ✔ purrr 0.3.4 ## ✔ tibble 3.1.8 ✔ dplyr 1.0.10 ## ✔ tidyr 1.2.1 ✔ stringr 1.4.0 ## ✔ readr 2.1.2 ✔ forcats 0.5.2 ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ── ## ✖ dplyr::filter() masks stats::filter() ## ✖ dplyr::lag() masks stats::lag() library(janitor) ## ## Attaching package: &amp;#39;janitor&amp;#39; ## ## The following objects are masked from &amp;#39;package:stats&amp;#39;: ## ## chisq.</description>
+    </item>
+    
     <item>
       <title>Post Election Reflection Model</title>
       <link>http://example.org/post/2022-11-21-post-election-reflection-model/</link>

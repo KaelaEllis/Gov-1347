@@ -1,0 +1,39 @@
+---
+title: Post-election Campaign Narrative
+author: Kaela Ellis
+date: '2022-12-06'
+slug: []
+categories: []
+tags: []
+---
+Welcome to my 2022 Midterm blog series. I’m Kaela Ellis, a junior at Harvard College studying Government.
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(glmnet)
+library(sf)
+library(plotly)
+library(usmap)
+library(rmapshaper)
+library(blogdown)
+library(gridExtra)
+library(stargazer)
+library(lubridate)
+library(dplyr)
+#library(caret)
+library(leaps)
+library(ggthemes)
+#library(usdata)
+#library(gt)
+#library(gtsummary)
+library(cowplot)
+dist.polls <- read.csv("~/Desktop/Gov1347/Gov-1347/Week 3/dist_polls_2018-2022.csv")
+```
+
+```{r}
+dist.polls <-  subset(dist.polls, state %in% c("Colorado"))
+dist.polls <- subset(dist.polls, seat_name %in% c("District 8"))
+dist.polls %>% select(start_date, end_date, pollster, sample_size, partisan, candidate_name, answer, pct)
+```
+

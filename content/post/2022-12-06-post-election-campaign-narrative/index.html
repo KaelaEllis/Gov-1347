@@ -1,0 +1,113 @@
+---
+title: Post-election Campaign Narrative
+author: Kaela Ellis
+date: '2022-12-06'
+slug: []
+categories: []
+tags: []
+---
+
+
+
+<p>Welcome to my 2022 Midterm blog series. I’m Kaela Ellis, a junior at Harvard College studying Government.</p>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
+## ✔ ggplot2 3.3.6      ✔ purrr   0.3.4 
+## ✔ tibble  3.1.8      ✔ dplyr   1.0.10
+## ✔ tidyr   1.2.1      ✔ stringr 1.4.0 
+## ✔ readr   2.1.2      ✔ forcats 0.5.2 
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>library(janitor)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;janitor&#39;
+## 
+## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     chisq.test, fisher.test</code></pre>
+<pre class="r"><code>library(glmnet)</code></pre>
+<pre><code>## Loading required package: Matrix
+## 
+## Attaching package: &#39;Matrix&#39;
+## 
+## The following objects are masked from &#39;package:tidyr&#39;:
+## 
+##     expand, pack, unpack
+## 
+## Loaded glmnet 4.1-4</code></pre>
+<pre class="r"><code>library(sf)</code></pre>
+<pre><code>## Linking to GEOS 3.10.2, GDAL 3.4.2, PROJ 8.2.1; sf_use_s2() is TRUE</code></pre>
+<pre class="r"><code>library(plotly)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;plotly&#39;
+## 
+## The following object is masked from &#39;package:ggplot2&#39;:
+## 
+##     last_plot
+## 
+## The following object is masked from &#39;package:stats&#39;:
+## 
+##     filter
+## 
+## The following object is masked from &#39;package:graphics&#39;:
+## 
+##     layout</code></pre>
+<pre class="r"><code>library(usmap)
+library(rmapshaper)</code></pre>
+<pre><code>## Registered S3 method overwritten by &#39;geojsonlint&#39;:
+##   method         from 
+##   print.location dplyr</code></pre>
+<pre class="r"><code>library(blogdown)
+library(gridExtra)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;gridExtra&#39;
+## 
+## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     combine</code></pre>
+<pre class="r"><code>library(stargazer)</code></pre>
+<pre><code>## 
+## Please cite as: 
+## 
+##  Hlavac, Marek (2022). stargazer: Well-Formatted Regression and Summary Statistics Tables.
+##  R package version 5.2.3. https://CRAN.R-project.org/package=stargazer</code></pre>
+<pre class="r"><code>library(lubridate)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;lubridate&#39;
+## 
+## The following objects are masked from &#39;package:base&#39;:
+## 
+##     date, intersect, setdiff, union</code></pre>
+<pre class="r"><code>library(dplyr)
+#library(caret)
+library(leaps)
+library(ggthemes)
+#library(usdata)
+#library(gt)
+#library(gtsummary)
+library(cowplot)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;cowplot&#39;
+## 
+## The following object is masked from &#39;package:ggthemes&#39;:
+## 
+##     theme_map
+## 
+## The following object is masked from &#39;package:lubridate&#39;:
+## 
+##     stamp</code></pre>
+<pre class="r"><code>dist.polls &lt;- read.csv(&quot;~/Desktop/Gov1347/Gov-1347/Week 3/dist_polls_2018-2022.csv&quot;)</code></pre>
+<pre class="r"><code>dist.polls &lt;-  subset(dist.polls, state %in% c(&quot;Colorado&quot;))
+dist.polls &lt;- subset(dist.polls, seat_name %in% c(&quot;District 8&quot;))
+dist.polls %&gt;% select(start_date, end_date, pollster, sample_size, partisan, candidate_name, answer, pct)</code></pre>
+<pre><code>##     start_date end_date              pollster sample_size partisan
+## 9      7/26/22   8/2/22 Global Strategy Group         500      DEM
+## 10     7/26/22   8/2/22 Global Strategy Group         500      DEM
+## 148     6/9/22  6/13/22 Global Strategy Group         500      DEM
+## 149     6/9/22  6/13/22 Global Strategy Group         500      DEM
+##        candidate_name    answer pct
+## 9      Yadira Caraveo   Caraveo  42
+## 10  Barbara Kirkmeyer Kirkmeyer  44
+## 148    Yadira Caraveo   Caraveo  36
+## 149 Barbara Kirkmeyer Kirkmeyer  44</code></pre>
